@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0f172a">
+<title>Framing Factory Planner — Doyle's Contracting System</title>
+<link rel="manifest" href="manifest.json">
+<style>
+  :root {
+    --bg: #0f172a; --card: #1e293b; --border: #334155; --text: #f8fafc;
+    --muted: #94a3b8; --accent: #ea580c; --green: #16a34a; --blue: #2563eb;
+    --purple: #7c3aed; --red: #dc2626; --amber: #d97706;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.45;
+  }
+  header {
+    background: #020617; border-bottom: 2px solid var(--accent);
+    padding: 16px 20px; position: sticky; top: 0; z-index: 20;
+  }
+  .hdr-top { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; max-width: 1200px; margin: 0 auto; }
+  h1 { margin: 0; font-size: 20px; letter-spacing: 0.3px; }
+  .sub { color: var(--muted); font-size: 13px; margin-top: 2px; }
+  .btn {
+    background: var(--accent); color: #fff; border: none; padding: 9px 15px;
+    border-radius: 7px; font-weight: 700; font-size: 13px; cursor: pointer;
+  }
+  .btn.sec { background: #334155; }
+  .btn.grn { background: var(--green); }
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 18px 16px 60px; }
+  .goal-banner {
+    background: linear-gradient(90deg, #1e293b, #0f172a);
+    border-left: 5px solid var(--accent); border: 1px solid var(--border);
+    border-left-width: 6px; border-left-color: var(--accent);
+    padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 14px;
+  }
+  .legend-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 10px; margin-bottom: 18px;
+  }
+  .leg-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 12px; border-top: 4px solid #fff; font-size: 12.5px;
+  }
+  .leg-title { font-weight: 700; font-size: 13.5px; margin-bottom: 3px; }
+  .tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+  .tab {
+    background: var(--card); color: var(--text); border: 1px solid var(--border);
+    padding: 9px 16px; border-radius: 7px; font-weight: 700; cursor: pointer; font-size: 13.5px;
+  }
+  .tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .wall-selector { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+  .w-pill {
+    padding: 8px 13px; border-radius: 7px; border: 2px solid var(--border);
+    background: var(--card); color: var(--text); cursor: pointer; font-weight: 700; font-size: 13px;
+  }
+  .w-pill.active { outline: 2px solid #fff; }
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 16px; margin-bottom: 16px;
+  }
+  .callout-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px; margin: 12px 0 16px;
+  }
+  .stat {
+    background: #020617; border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 14px;
+  }
+  .stat .lbl { color: var(--muted); font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.6px; }
+  .stat .val { font-size: 21px; font-weight: 800; margin-top: 3px; color: #38bdf8; }
+  .stat .val.go { color: #4ade80; }
+  .goofy {
+    background: rgba(220, 38, 38, 0.16); border: 2px solid #ef4444;
+    color: #fecaca; padding: 12px 15px; border-radius: 8px; margin: 12px 0;
+    font-weight: 600; font-size: 13.5px;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px; }
+  th, td { border: 1px solid var(--border); padding: 8px 10px; text-align: left; }
+  th { background: #020617; color: #cbd5e1; font-size: 12px; text-transform: uppercase; }
+  .badge {
+    display: inline-block; padding: 2px 8px; border-radius: 5px; font-weight: 700; font-size: 11.5px;
+  }
+  .b-ver { background: rgba(22, 163, 74, 0.25); color: #86efac; border: 1px solid #16a34a; }
+  .b-old { background: rgba(148, 163, 184, 0.15); color: #94a3b8; text-decoration: line-through; margin-left: 6px; }
+  .tape-strip {
+    display: flex; flex-wrap: wrap; gap: 6px; background: #020617;
+    padding: 12px; border-radius: 8px; border: 1px solid var(--border);
+  }
+  .tick {
+    background: #1e293b; border: 1px solid #475569; padding: 4px 8px;
+    border-radius: 5px; font-family: monospace; font-size: 12.5px;
+  }
+  .tick.first { background: #14532d; border-color: #22c55e; color: #bbf7d0; font-weight: 700; }
+  .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; margin-bottom: 12px; }
+  input, select {
+    width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border);
+    background: #020617; color: var(--text); font-size: 13.5px;
+  }
+  label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 4px; font-weight: 600; }
+  @media print {
+    body { background: #fff; color: #000; }
+    header, .tabs, .wall-selector, .no-print { display: none !important; }
+    .card, .stat { background: #fff; border: 1px solid #000; color: #000; }
+    .goofy { background: #fee2e2; color: #7f1d1d; border: 2px solid #dc2626; }
+    th { background: #e2e8f0; color: #000; }
+    th, td { border: 1px solid #000; color: #000; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="hdr-top">
+    <div>
+      <h1>FRAMING FACTORY PLANNER — DOYLE'S CONTRACTING SYSTEM</h1>
+      <div class="sub">Left-End "X &amp; Go" Plate Layout &middot; Order-Packet Verified Openings &middot; Pre-Made Header/Shoulder Batches &middot; Crew Work Cards</div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn grn" id="installBtn" style="display:none" onclick="installApp()">Install Crew App</button>
+      <button class="btn sec" onclick="window.print()">Print Active Crew Sheet</button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="goal-banner" id="goalBanner"></div>
+
+  <div class="legend-grid" id="legendGrid"></div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('walls', this)">1. Crew Wall Pull Sheets (Left-End Tape)</button>
+    <button class="tab" onclick="showTab('batches', this)">2. Cut Bench: Grouped Headers &amp; Pre-Made Shoulders</button>
+    <button class="tab" onclick="showTab('windows', this)">3. Window &amp; Door Order Verification Schedule</button>
+    <button class="tab" onclick="showTab('custom', this)">4. Custom Wall / "X &amp; Go" Calculator</button>
+    <button class="tab" onclick="showTab('qc', this)">5. Municipal Framing Pre-Inspection Checklist</button>
+  </div>
+
+  <div id="tab-walls">
+    <div class="wall-selector" id="wallPills"></div>
+    <div id="activeWallCard"></div>
+  </div>
+
+  <div id="tab-batches" style="display:none"></div>
+  <div id="tab-windows" style="display:none"></div>
+  <div id="tab-custom" style="display:none"></div>
+  <div id="tab-qc" style="display:none"></div>
+</div>
+
+<script>
+const DATA = {"project_name": "Doyle's Contracting \u2014 2,150 Sq Ft Custom Ranch (Pre-Staged Jobsite Package)", "daily_goal": "Day 1 Goal: Snap deck lines, pre-assemble all grouped headers & supporting shoulders at cut bench, frame & stand Exterior Walls W-1 through W-4.", "color_legend": {"BLUE_8FT": {"color": "Blue", "hex": "#2563eb", "wall_height_label": "8' 1-1/8\" Standard Wall", "precut_stud_label": "92-5/8\"", "meaning": "8' Wall \u2014 Factory 92-5/8\" Pre-Cut Studs"}, "GREEN_9FT": {"color": "Green", "hex": "#16a34a", "wall_height_label": "9' 1-1/8\" Tall Main Wall", "precut_stud_label": "104-5/8\"", "meaning": "9' Wall \u2014 Factory 104-5/8\" Pre-Cut Studs"}, "ORANGE_10FT": {"color": "Orange", "hex": "#ea580c", "wall_height_label": "10' 1-1/8\" High / Garage Wall", "precut_stud_label": "116-5/8\"", "meaning": "10' Wall \u2014 Factory 116-5/8\" Pre-Cut Studs"}, "PURPLE_RAKE": {"color": "Purple", "hex": "#7c3aed", "wall_height_label": "Vault / Rake / Custom Slope", "precut_stud_label": "104-5/8\"", "meaning": "Rake / Vaulted Wall \u2014 Custom Tapered Studs (See Field Note)"}, "RED_GOOFY": {"color": "Red Alert", "hex": "#dc2626", "wall_height_label": "Goofy Area / Field Heads-Up", "precut_stud_label": "104-5/8\"", "meaning": "GOOFY AREA \u2014 Extra Field Framing Knowledge / Check With Lead Before Cutting"}}, "batches": {"headers": [{"stock": "2-ply 1-3/4\"x11-7/8\" LVL", "length_in": 88.0, "length_label": "7' 4\" (88\")", "count": 1, "labels": ["LLPD1-82 (W-1)"]}, {"stock": "2-ply 1-3/4\"x11-7/8\" LVL", "length_in": 78.0, "length_label": "6' 6\" (78\")", "count": 1, "labels": ["LLW1-72 (W-1)"]}, {"stock": "2-ply 2x12 w/ 1/2\" OSB", "length_in": 54.0, "length_label": "4' 6\" (54\")", "count": 2, "labels": ["BR3W1-48 (W-1)", "BR2W1-48 (W-4)"]}, {"stock": "2-ply 2x12 w/ 1/2\" OSB", "length_in": 88.0, "length_label": "7' 4\" (88\")", "count": 1, "labels": ["PD1-82 (W-2)"]}, {"stock": "2-ply 2x12 w/ 1/2\" OSB", "length_in": 66.0, "length_label": "5' 6\" (66\")", "count": 2, "labels": ["GRW1-60 (W-2)", "MS1-60 (W-3)"]}, {"stock": "2-ply 2x10 w/ 1/2\" OSB", "length_in": 39.0, "length_label": "3' 3\" (39\")", "count": 1, "labels": ["MBW1-36 (W-3)"]}, {"stock": "2-ply 2x10 w/ 1/2\" OSB", "length_in": 31.0, "length_label": "2' 7\" (31\")", "count": 1, "labels": ["PDW1-28 (W-4)"]}, {"stock": "2-ply 2x12 w/ 1/2\" OSB", "length_in": 72.0, "length_label": "6' 0\" (72\")", "count": 1, "labels": ["FD1-66 (W-5)"]}, {"stock": "2-ply 1-3/4\"x11-7/8\" LVL + Bottom Flat 2x6", "length_in": 200.0, "length_label": "16' 8\" (200\")", "count": 1, "labels": ["GD1-194 (W-6)"]}, {"stock": "2-ply 2x6 w/ 1/2\" OSB", "length_in": 37.0, "length_label": "3' 1\" (37\")", "count": 1, "labels": ["MD1-34 (W-7)"]}, {"stock": "2-ply 2x6 w/ 1/2\" OSB", "length_in": 35.0, "length_label": "2' 11\" (35\")", "count": 1, "labels": ["BR2D1-32 (W-7)"]}, {"stock": "2-ply 2x6 w/ 1/2\" OSB", "length_in": 33.0, "length_label": "2' 9\" (33\")", "count": 1, "labels": ["PDD1-30 (W-7)"]}, {"stock": "2-ply 2x10 w/ 1/2\" OSB", "length_in": 53.0, "length_label": "4' 5\" (53\")", "count": 1, "labels": ["FP1-50 (W-8)"]}], "shoulders": [{"lumber": "2x6", "length_in": 81.0, "length_label": "81\"", "plies_per_side": 2, "total_assemblies": 16, "total_pieces": 32, "labels": ["LLPD1-82 (W-1)", "LLW1-72 (W-1)", "BR3W1-48 (W-1)", "PD1-82 (W-2)", "GRW1-60 (W-2)", "MS1-60 (W-3)", "BR2W1-48 (W-4)", "FD1-66 (W-5)"]}, {"lumber": "2x6", "length_in": 81.0, "length_label": "81\"", "plies_per_side": 1, "total_assemblies": 4, "total_pieces": 4, "labels": ["MBW1-36 (W-3)", "PDW1-28 (W-4)"]}, {"lumber": "2x6", "length_in": 84.0, "length_label": "84\"", "plies_per_side": 2, "total_assemblies": 2, "total_pieces": 4, "labels": ["GD1-194 (W-6)"]}, {"lumber": "2x4", "length_in": 81.0, "length_label": "81\"", "plies_per_side": 1, "total_assemblies": 6, "total_pieces": 6, "labels": ["MD1-34 (W-7)", "BR2D1-32 (W-7)", "PDD1-30 (W-7)"]}, {"lumber": "2x6", "length_in": 42.5, "length_label": "42-1/2\"", "plies_per_side": 1, "total_assemblies": 2, "total_pieces": 2, "labels": ["FP1-50 (W-8)"]}], "sills": [{"lumber": "2x6", "length_in": 72.0, "length_label": "72\"", "count": 1, "labels": ["LLW1-72 (W-1)"]}, {"lumber": "2x6", "length_in": 48.0, "length_label": "48\"", "count": 2, "labels": ["BR3W1-48 (W-1)", "BR2W1-48 (W-4)"]}, {"lumber": "2x6", "length_in": 60.0, "length_label": "60\"", "count": 2, "labels": ["GRW1-60 (W-2)", "MS1-60 (W-3)"]}, {"lumber": "2x6", "length_in": 36.0, "length_label": "36\"", "count": 1, "labels": ["MBW1-36 (W-3)"]}, {"lumber": "2x6", "length_in": 28.0, "length_label": "28\"", "count": 1, "labels": ["PDW1-28 (W-4)"]}, {"lumber": "2x6", "length_in": 50.0, "length_label": "50\"", "count": 1, "labels": ["FP1-50 (W-8)"]}]}, "walls": [{"wall_id": "W-1", "name": "Lower-Level Full Walkout Exposure Wall (South Rear)", "lumber_size": "2x6", "color_code": "GREEN_9FT", "color_info": {"color": "Green", "hex": "#16a34a", "wall_height_label": "9' 1-1/8\" Tall Main Wall", "precut_stud_label": "104-5/8\""}, "length_in": 432.0, "length_label": "36' 0\" (432\")", "first_stud_pull_in": 8.25, "x_and_go_callout": "8-1/4\" & GO", "oc_marks": ["0' 8-1/4\" (8-1/4\")", "2' 1/4\" (24-1/4\")", "3' 4-1/4\" (40-1/4\")", "4' 8-1/4\" (56-1/4\")", "6' 1/4\" (72-1/4\")", "7' 4-1/4\" (88-1/4\")", "8' 8-1/4\" (104-1/4\")", "10' 1/4\" (120-1/4\")", "11' 4-1/4\" (136-1/4\")", "12' 8-1/4\" (152-1/4\")", "14' 1/4\" (168-1/4\")", "15' 4-1/4\" (184-1/4\")", "16' 8-1/4\" (200-1/4\")", "18' 1/4\" (216-1/4\")", "19' 4-1/4\" (232-1/4\")", "20' 8-1/4\" (248-1/4\")", "22' 1/4\" (264-1/4\")", "23' 4-1/4\" (280-1/4\")", "24' 8-1/4\" (296-1/4\")", "26' 1/4\" (312-1/4\")", "27' 4-1/4\" (328-1/4\")", "28' 8-1/4\" (344-1/4\")", "30' 1/4\" (360-1/4\")", "31' 4-1/4\" (376-1/4\")", "32' 8-1/4\" (392-1/4\")", "34' 1/4\" (408-1/4\")", "35' 4-1/4\" (424-1/4\")"], "oc_marks_short": ["8-1/4\"", "24-1/4\"", "40-1/4\"", "56-1/4\"", "72-1/4\"", "88-1/4\"", "104-1/4\"", "120-1/4\"", "136-1/4\"", "152-1/4\"", "168-1/4\"", "184-1/4\"", "200-1/4\"", "216-1/4\"", "232-1/4\"", "248-1/4\"", "264-1/4\"", "280-1/4\"", "296-1/4\"", "312-1/4\"", "328-1/4\"", "344-1/4\"", "360-1/4\"", "376-1/4\"", "392-1/4\"", "408-1/4\"", "424-1/4\""], "precut_stud_count": 37, "goofy_alert": "FULL WALKOUT EXPOSURE WALL: Treated 2x6 bottom plate on concrete curb + step-foundation frost wall transition at left end. Anchor bolts every 48\" max and within 12\" of plate breaks. Verify floor-truss bearing ribbon elevation with laser before sheeting!", "crew_note": "Pull from LEFT (Southwest foundation step): 8-1/4\" & GO. Stacks directly under Main Floor W-2.", "openings": [{"label": "LLPD1-82", "plan_old_code": "TZ172-LL", "room_and_type": "Lower-Level Walkout Patio Door #1 (Rec Room)", "kind": "DOOR", "order_packet_verified": true, "ro_size_label": "82\" x 82-1/2\"", "left_king_label": "5' 7-1/2\" (67-1/2\")", "left_shoulder_label": "5' 9\" (69\")", "left_ro_start_label": "6' 0\" (72\")", "right_ro_end_label": "12' 10\" (154\")", "right_shoulder_end_label": "13' 1\" (157\")", "right_king_end_label": "13' 2-1/2\" (158-1/2\")", "header_stock": "2-ply 1-3/4\"x11-7/8\" LVL", "header_length_label": "7' 4\" (88\")", "shoulders_per_side": 2, "shoulder_length_label": "81\"", "sill_length_label": "N/A (Door)"}, {"label": "LLW1-72", "plan_old_code": "W-01A", "room_and_type": "Lower-Level Exposure Twin Window #1 (Rec Room)", "kind": "WINDOW", "order_packet_verified": true, "ro_size_label": "72\" x 62\"", "left_king_label": "15' 7-1/2\" (187-1/2\")", "left_shoulder_label": "15' 9\" (189\")", "left_ro_start_label": "16' 0\" (192\")", "right_ro_end_label": "22' 0\" (264\")", "right_shoulder_end_label": "22' 3\" (267\")", "right_king_end_label": "22' 4-1/2\" (268-1/2\")", "header_stock": "2-ply 1-3/4\"x11-7/8\" LVL", "header_length_label": "6' 6\" (78\")", "shoulders_per_side": 2, "shoulder_length_label": "81\"", "sill_length_label": "72\""}, {"label": "BR3W1-48", "plan_old_code": "W-03E", "room_and_type": "Bedroom #3 Exposure Egress Window #1", "kind": "WINDOW", "order_packet_verified": true, "ro_size_label": "48\" x 62\"", "left_king_label": "25' 7-1/2\" (307-1/2\")", "left_shoulder_label": "25' 9\" (309\")", "left_ro_start_label": "26' 0\" (312\")", "right_ro_end_label": "30' 0\" (360\")", "right_shoulder_end_label": "30' 3\" (363\")", "right_king_end_label": "30' 4-1/2\" (364-1/2\")", "header_stock": "2-ply 2x12 w/ 1/2\" OSB", "header_length_label": "4' 6\" (54\")", "shoulders_per_side": 2, "shoulder_length_label": "81\"", "sill_length_label": "48\""}], "intersections": [{"intersecting_wall_id": "W-9", "description": "Bedroom #3 / Rec Room Demising Wall (2x4)", "left_backer_label": "23' 4-1/2\" (280-1/2\")", "left_edge_label": "23' 6\" (282\")", "right_edge_label": "23' 9-1/2\" (285-1/2\")", "right_backer_end_label": "23' 11\" (287\")", "thickness_label": "3-1/2\"", "top_plate_lap_gap_label": "Leave 3-1/2\" gap in 2nd Top Plate (23' 6\" (282\") to 23' 9-1/2\" (285-1/2\"))"}]}, {"wall_id": "W-2", "name": "Great Room 10' Tall Rear Exposure Wall (Above Walkout)", "lumber_size": "2x6", "color_code": "ORANGE_10FT", "color_info": {"color": "Orange", "hex": "#ea580c", "wall_height_label": "10' 1-1/8\" High / Garage Wall", "precut_stud_label": "116-5/8\""}, "length_in": 336.0, "length_label": "28' 0\" (336\")", "first_stud_pull_in": 8.25, "x_and_go_callout": "8-1/4\" & GO", "oc_marks": ["0' 8-1/4\" (8-1/4\")", "2' 1/4\" (24-1/4\")", "3' 4-1/4\" (40-1/4\")", "4' 8-1/4\" (56-1/4\")", "6' 1/4\" (72-1/4\")", "7' 4-1/4\" (88-1/4\")", "8' 8-1/4\" (104-1/4\")", "10' 1/4\" (120-1/4\")", "11' 4-1/4\" (136-1/4\")", "12' 8-1/4\" (152-1/4\")", "14' 1/4\" (168-1/4\")", "15' 4-1/4\" (184-1/4\")", "16' 8-1/4\" (200-1/4\")", "18' 1/4\" (216-1/4\")", "19' 4-1/4\" (232-1/4\")", "20' 8-1/4\" (248-1/4\")", "22' 1/4\" (264-1/4\")", "23' 4-1/4\" (280-1/4\")", "24' 8-1/4\" (296-1/4\")", "26' 1/4\" (312-1/4\")", "27' 4-1/4\" (328-1/4\")"], "oc_marks_short": ["8-1/4\"", "24-1/4\"", "40-1/4\"", "56-1/4\"", "72-1/4\"", "88-1/4\"", "104-1/4\"", "120-1/4\"", "136-1/4\"", "152-1/4\"", "168-1/4\"", "184-1/4\"", "200-1/4\"", "216-1/4\"", "232-1/4\"", "248-1/4\"", "264-1/4\"", "280-1/4\"", "296-1/4\"", "312-1/4\"", "328-1/4\""], "precut_stud_count": 29, "goofy_alert": "10'1-1/8\" TALL WALL (116-5/8\" Studs) + GREAT ROOM TRAY CEILING LEDGER: Snap chalk line at 9' 0\" AFF around inside face of W-2 and W-6 for 12\" dropped perimeter tray ceiling soffit Ladder Framing. Point load from ridge girder truss at 14' 6\" from left end.", "crew_note": "Pull from LEFT: 8-1/4\" & GO so studs stack vertically over Lower-Level Walkout W-1.", "openings": [{"label": "PD1-82", "plan_old_code": "TZ172", "room_and_type": "Main Deck Patio Door #1 \u2014 Great Room", "kind": "DOOR", "order_packet_verified": true, "ro_size_label": "82\" x 82-1/2\"", "left_king_label": "5' 11-1/2\" (71-1/2\")", "left_shoulder_label": "6' 1\" (73\")", "left_ro_start_label": "6' 4\" (76\")", "right_ro_end_label": "13' 2\" (158\")", "right_shoulder_end_label": "13' 5\" (161\")", "right_king_end_label": "13' 6-1/2\" (162-1/2\")", "header_stock": "2-ply 2x12 w/ 1/2\" OSB", "header_length_label": "7' 4\" (88\")", "shoulders_per_side": 2, "shoulder_length_label": "81\"", "sill_length_label": "N/A (Door)"}, {"label": "GRW1-60", "plan_old_code": "W-204B", "room_and_type": "Great Room Picture Window #1 (w/ 18\" Transom Above)", "kind": "WINDOW", "order_packet_verified": true, "ro_size_label": "60\" x 62\"", "left_king_label": "16' 7-1/2\" (199-1/2\")", "left_shoulder_label": "16' 9\" (201\")", "left_ro_start_label": "17' 0\" (204\")", "right_ro_end_label": "22' 0\" (264\")", "right_shoulder_end_label": "22' 3\" (267\")", "right_king_end_label": "22' 4-1/2\" (268-1/2\")", "header_stock": "2-ply 2x12 w/ 1/2\" OSB", "header_length_label": "5' 6\" (66\")", "shoulders_per_side": 2, "shoulder_length_label": "81\"", "sill_length_label": "60\""}], "intersections": [{"intersecting_wall_id": "W-6", "description": "Kitchen / Great Room Bearing Partition (2x6)", "left_backer_label": "14' 4-1/2\" (172-1/2\")", "left_edge_label": "14' 6\" (174\")", "right_edge_label": "14' 11-1/2\" (179-1/2\")", "right_backer_end_label": "15' 1\" (181\")", "thickness_label": "5-1/2\"", "top_plate_lap_gap_label": "Leave 5-1/2\" gap in 2nd Top Plate (14' 6\" (174\") to 14' 11-1/2\" (179-1/2\"))"}]}, {"wall_id": "W-3", "name": "Bedroom #1 (Master Suite) Rear Exterior + Tray Ceiling", "lumber_size": "2x6", "color_code": "GREEN_9FT", "color_info": {"color": "Green", "hex": "#16a34a", "wall_height_label": "9' 1-1/8\" Tall Main Wall", "precut_stud_label": "104-5/8\""}, "length_in": 240.0, "length_label": "20' 0\" (240\")", "first_stud_pull_in": 10.25, "x_and_go_callout": "10-1/4\" & GO", "oc_marks": ["0' 10-1/4\" (10-1/4\")", "2' 2-1/4\" (26-1/4\")", "3' 6-1/4\" (42-1/4\")", "4' 10-1/4\" (58-1/4\")", "6' 2-1/4\" (74-1/4\")", "7' 6-1/4\" (90-1/4\")", "8' 10-1/4\" (106-1/4\")", "10' 2-1/4\" (122-1/4\")", "11' 6-1/4\" (138-1/4\")", "12' 10-1/4\" (154-1/4\")", "14' 2-1/4\" (170-1/4\")", "15' 6-1/4\" (186-1/4\")", "16' 10-1/4\" (202-1/4\")", "18' 2-1/4\" (218-1/4\")", "19' 6-1/4\" (234-1/4\")"], "oc_marks_short": ["10-1/4\"", "26-1/4\"", "42-1/4\"", "58-1/4\"", "74-1/4\"", "90-1/4\"", "106-1/4\"", "122-1/4\"", "138-1/4\"", "154-1/4\"", "170-1/4\"", "186-1/4\"", "202-1/4\"", "218-1/4\"", "234-1/4\""], "precut_stud_count": 23, "goofy_alert": "MASTER BEDROOM STEPPED TRAY CEILING: Raised scissor-heel truss pocket sits between 0' 0\" and 12' 2\". Pre-build 2x4 ladder soffit boxes (16\" deep x 10\" drop) on deck before lifting onto perimeter ledger.", "crew_note": "Pull from LEFT: 10-1/4\" & GO. Notice MS1-60 uses the exact same header & double-shoulder package as GRW1-60.", "openings": [{"label": "MS1-60", "plan_old_code": "W-108A", "room_and_type": "Master Bedroom Twin Window #1", "kind": "WINDOW", "order_packet_verified": true, "ro_size_label": "60\" x 62\"", "left_king_label": "5' 1-1/2\" (61-1/2\")", "left_shoulder_label": "5' 3\" (63\")", "left_ro_start_label": "5' 6\" (66\")", "right_ro_end_label": "10' 6\" (126\")", "right_shoulder_end_label": "10' 9\" (129\")", "right_king_end_label": "10' 10-1/2\" (130-1/2\")", "header_stock": "2-ply 2x12 w/ 1/2\" OSB", "header_length_label": "5' 6\" (66\")", "shoulders_per_side": 2, "shoulder_length_label": "81\"", "sill_length_label": "60\""}, {"label": "MBW1-36", "plan_old_code": "W-112T", "room_and_type": "Master Bath Transom Window #1", "kind": "WINDOW", "order_packet_verified": true, "ro_size_label": "36\" x 24\"", "left_king_label": "13' 9\" (165\")", "left_shoulder_label": "13' 10-1/2\" (166-1/2\")", "left_ro_start_label": "14' 0\" (168\")", "right_ro_end_label": "17' 0\" (204\")", "right_shoulder_end_label": "17' 1-1/2\" (205-1/2\")", "right_king_end_label": "17' 3\" (207\")", "header_stock": "2-ply 2x10 w/ 1/2\" OSB", "header_length_label": "3' 3\" (39\")", "shoulders_per_side": 1, "shoulder_length_label": "81\"", "sill_length_label": "36\""}], "intersections": [{"intersecting_wall_id": "W-7", "description": "Master Bath Wet Wall (2x6 Plumbing)", "left_backer_label": "12' 1/2\" (144-1/2\")", "left_edge_label": "12' 2\" (146\")", "right_edge_label": "12' 7-1/2\" (151-1/2\")", "right_backer_end_label": "12' 9\" (153\")", "thickness_label": "5-1/2\"", "top_plate_lap_gap_label": "Leave 5-1/2\" gap in 2nd Top Plate (12' 2\" (146\") to 12' 7-1/2\" (151-1/2\"))"}]}, {"wall_id": "W-4", "name": "Bedroom #2 & Powder Room West Exterior Wall", "lumber_size": "2x6", "color_code": "GREEN_9FT", "color_info": {"color": "Green", "hex": "#16a34a", "wall_height_label": "9' 1-1/8\" Tall Main Wall", "precut_stud_label": "104-5/8\""}, "length_in": 288.0, "length_label": "24' 0\" (288\")", "first_stud_pull_in": 15.25, "x_and_go_callout": "15-1/4\" & GO", "oc_marks": ["1' 3-1/4\" (15-1/4\")", "2' 7-1/4\" (31-1/4\")", "3' 11-1/4\" (47-1/4\")", "5' 3-1/4\" (63-1/4\")", "6' 7-1/4\" (79-1/4\")", "7' 11-1/4\" (95-1/4\")", "9' 3-1/4\" (111-1/4\")", "10' 7-1/4\" (127-1/4\")", "11' 11-1/4\" (143-1/4\")", "13' 3-1/4\" (159-1/4\")", "14' 7-1/4\" (175-1/4\")", "15' 11-1/4\" (191-1/4\")", "17' 3-1/4\" (207-1/4\")", "18' 7-1/4\" (223-1/4\")", "19' 11-1/4\" (239-1/4\")", "21' 3-1/4\" (255-1/4\")", "22' 7-1/4\" (271-1/4\")"], "oc_marks_short": ["15-1/4\"", "31-1/4\"", "47-1/4\"", "63-1/4\"", "79-1/4\"", "95-1/4\"", "111-1/4\"", "127-1/4\"", "143-1/4\"", "159-1/4\"", "175-1/4\"", "191-1/4\"", "207-1/4\"", "223-1/4\"", "239-1/4\"", "255-1/4\"", "271-1/4\""], "precut_stud_count": 27, "goofy_alert": "", "crew_note": "Pull from LEFT: 15-1/4\" & GO. Notice BR2W1-48 shares the exact same 54\" 2x12 header batch as BR3W1-48 on W-1.", "openings": [{"label": "BR2W1-48", "plan_old_code": "W-104", "room_and_type": "Bedroom #2 Casement Window #1", "kind": "WINDOW", "order_packet_verified": true, "ro_size_label": "48\" x 62\"", "left_king_label": "4' 1-1/2\" (49-1/2\")", "left_shoulder_label": "4' 3\" (51\")", "left_ro_start_label": "4' 6\" (54\")", "right_ro_end_label": "8' 6\" (102\")", "right_shoulder_end_label": "8' 9\" (105\")", "right_king_end_label": "8' 10-1/2\" (106-1/2\")", "header_stock": "2-ply 2x12 w/ 1/2\" OSB", "header_length_label": "4' 6\" (54\")", "shoulders_per_side": 2, "shoulder_length_label": "81\"", "sill_length_label": "48\""}, {"label": "PDW1-28", "plan_old_code": "W-02C", "room_and_type": "Powder Room Window #1", "kind": "WINDOW", "order_packet_verified": true, "ro_size_label": "28\" x 42\"", "left_king_label": "16' 3\" (195\")", "left_shoulder_label": "16' 4-1/2\" (196-1/2\")", "left_ro_start_label": "16' 6\" (198\")", "right_ro_end_label": "18' 10\" (226\")", "right_shoulder_end_label": "18' 11-1/2\" (227-1/2\")", "right_king_end_label": "19' 1\" (229\")", "header_stock": "2-ply 2x10 w/ 1/2\" OSB", "header_length_label": "2' 7\" (31\")", "shoulders_per_side": 1, "shoulder_length_label": "81\"", "sill_length_label": "28\""}], "intersections": [{"intersecting_wall_id": "W-8", "description": "Bedroom #2 Closet / Hall Partition (2x4)", "left_backer_label": "11' 10-1/2\" (142-1/2\")", "left_edge_label": "12' 0\" (144\")", "right_edge_label": "12' 3-1/2\" (147-1/2\")", "right_backer_end_label": "12' 5\" (149\")", "thickness_label": "3-1/2\"", "top_plate_lap_gap_label": "Leave 3-1/2\" gap in 2nd Top Plate (12' 0\" (144\") to 12' 3-1/2\" (147-1/2\"))"}, {"intersecting_wall_id": "W-10", "description": "Powder Room South Partition (2x4)", "left_backer_label": "14' 10-1/2\" (178-1/2\")", "left_edge_label": "15' 0\" (180\")", "right_edge_label": "15' 3-1/2\" (183-1/2\")", "right_backer_end_label": "15' 5\" (185\")", "thickness_label": "3-1/2\"", "top_plate_lap_gap_label": "Leave 3-1/2\" gap in 2nd Top Plate (15' 0\" (180\") to 15' 3-1/2\" (183-1/2\"))"}]}, {"wall_id": "W-5", "name": "Front Entry Foyer & Covered Porch Bearing Wall (North)", "lumber_size": "2x6", "color_code": "ORANGE_10FT", "color_info": {"color": "Orange", "hex": "#ea580c", "wall_height_label": "10' 1-1/8\" High / Garage Wall", "precut_stud_label": "116-5/8\""}, "length_in": 264.0, "length_label": "22' 0\" (264\")", "first_stud_pull_in": 2.75, "x_and_go_callout": "2-3/4\" & GO", "oc_marks": ["0' 2-3/4\" (2-3/4\")", "1' 6-3/4\" (18-3/4\")", "2' 10-3/4\" (34-3/4\")", "4' 2-3/4\" (50-3/4\")", "5' 6-3/4\" (66-3/4\")", "6' 10-3/4\" (82-3/4\")", "8' 2-3/4\" (98-3/4\")", "9' 6-3/4\" (114-3/4\")", "10' 10-3/4\" (130-3/4\")", "12' 2-3/4\" (146-3/4\")", "13' 6-3/4\" (162-3/4\")", "14' 10-3/4\" (178-3/4\")", "16' 2-3/4\" (194-3/4\")", "17' 6-3/4\" (210-3/4\")", "18' 10-3/4\" (226-3/4\")", "20' 2-3/4\" (242-3/4\")", "21' 6-3/4\" (258-3/4\")"], "oc_marks_short": ["2-3/4\"", "18-3/4\"", "34-3/4\"", "50-3/4\"", "66-3/4\"", "82-3/4\"", "98-3/4\"", "114-3/4\"", "130-3/4\"", "146-3/4\"", "162-3/4\"", "178-3/4\"", "194-3/4\"", "210-3/4\"", "226-3/4\"", "242-3/4\"", "258-3/4\""], "precut_stud_count": 25, "goofy_alert": "10' FOYER ENTRY + WALKOUT STAIRWELL OPENING: Stairwell header pocket frames into W-12 at 16' 0\" from left end. Keep subfloor sheathing unglued inside stairwell hatch zone for clean cutout after walls are braced.", "crew_note": "Pull from LEFT: 2-3/4\" & GO.", "openings": [{"label": "FD1-66", "plan_old_code": "D-101SL", "room_and_type": "Front Entry Door #1 w/ Dual Sidelites (66\" x 82-1/2\" R.O.)", "kind": "DOOR", "order_packet_verified": true, "ro_size_label": "66\" x 82-1/2\"", "left_king_label": "7' 10-1/2\" (94-1/2\")", "left_shoulder_label": "8' 0\" (96\")", "left_ro_start_label": "8' 3\" (99\")", "right_ro_end_label": "13' 9\" (165\")", "right_shoulder_end_label": "14' 0\" (168\")", "right_king_end_label": "14' 1-1/2\" (169-1/2\")", "header_stock": "2-ply 2x12 w/ 1/2\" OSB", "header_length_label": "6' 0\" (72\")", "shoulders_per_side": 2, "shoulder_length_label": "81\"", "sill_length_label": "N/A (Door)"}], "intersections": [{"intersecting_wall_id": "W-11", "description": "Foyer Coat Closet East Wall (2x4)", "left_backer_label": "3' 10-1/2\" (46-1/2\")", "left_edge_label": "4' 0\" (48\")", "right_edge_label": "4' 3-1/2\" (51-1/2\")", "right_backer_end_label": "4' 5\" (53\")", "thickness_label": "3-1/2\"", "top_plate_lap_gap_label": "Leave 3-1/2\" gap in 2nd Top Plate (4' 0\" (48\") to 4' 3-1/2\" (51-1/2\"))"}, {"intersecting_wall_id": "W-12", "description": "Walkout Stairwell Bearing Wall (2x6)", "left_backer_label": "15' 10-1/2\" (190-1/2\")", "left_edge_label": "16' 0\" (192\")", "right_edge_label": "16' 5-1/2\" (197-1/2\")", "right_backer_end_label": "16' 7\" (199\")", "thickness_label": "5-1/2\"", "top_plate_lap_gap_label": "Leave 5-1/2\" gap in 2nd Top Plate (16' 0\" (192\") to 16' 5-1/2\" (197-1/2\"))"}]}, {"wall_id": "W-6", "name": "3-Car Garage 10' Front Portal Wall", "lumber_size": "2x6", "color_code": "RED_GOOFY", "color_info": {"color": "Red Alert", "hex": "#dc2626", "wall_height_label": "Goofy Area / Field Heads-Up", "precut_stud_label": "104-5/8\""}, "length_in": 288.0, "length_label": "24' 0\" (288\")", "first_stud_pull_in": 5.5, "x_and_go_callout": "5-1/2\" & GO", "oc_marks": ["0' 5-1/2\" (5-1/2\")", "1' 9-1/2\" (21-1/2\")", "3' 1-1/2\" (37-1/2\")", "4' 5-1/2\" (53-1/2\")", "5' 9-1/2\" (69-1/2\")", "7' 1-1/2\" (85-1/2\")", "8' 5-1/2\" (101-1/2\")", "9' 9-1/2\" (117-1/2\")", "11' 1-1/2\" (133-1/2\")", "12' 5-1/2\" (149-1/2\")", "13' 9-1/2\" (165-1/2\")", "15' 1-1/2\" (181-1/2\")", "16' 5-1/2\" (197-1/2\")", "17' 9-1/2\" (213-1/2\")", "19' 1-1/2\" (229-1/2\")", "20' 5-1/2\" (245-1/2\")", "21' 9-1/2\" (261-1/2\")", "23' 1-1/2\" (277-1/2\")"], "oc_marks_short": ["5-1/2\"", "21-1/2\"", "37-1/2\"", "53-1/2\"", "69-1/2\"", "85-1/2\"", "101-1/2\"", "117-1/2\"", "133-1/2\"", "149-1/2\"", "165-1/2\"", "181-1/2\"", "197-1/2\"", "213-1/2\"", "229-1/2\"", "245-1/2\"", "261-1/2\"", "277-1/2\""], "precut_stud_count": 22, "goofy_alert": "GOOFY AREA \u2014 10'1-1/8\" Garage Wall (116-5/8\" studs) + Narrow Portal Return: Hold-down anchor bolts embedded in concrete at both king posts; confirm Simpson hold-down bracket alignment before standing wall!", "crew_note": "Pull from LEFT: 5-1/2\" & GO. Stage LVL header with SkyTrak before standing.", "openings": [{"label": "GD1-194", "plan_old_code": "OHD-16", "room_and_type": "16'x7' Overhead Garage Door #1 (194\" x 85-1/2\" R.O.)", "kind": "DOOR", "order_packet_verified": true, "ro_size_label": "194\" x 85-1/2\"", "left_king_label": "3' 6-1/2\" (42-1/2\")", "left_shoulder_label": "3' 8\" (44\")", "left_ro_start_label": "3' 11\" (47\")", "right_ro_end_label": "20' 1\" (241\")", "right_shoulder_end_label": "20' 4\" (244\")", "right_king_end_label": "20' 5-1/2\" (245-1/2\")", "header_stock": "2-ply 1-3/4\"x11-7/8\" LVL + Bottom Flat 2x6", "header_length_label": "16' 8\" (200\")", "shoulders_per_side": 2, "shoulder_length_label": "84\"", "sill_length_label": "N/A (Door)"}], "intersections": []}, {"wall_id": "W-7", "name": "Master Hall / Bedroom #2 Interior Door Corridor (2x4)", "lumber_size": "2x4", "color_code": "BLUE_8FT", "color_info": {"color": "Blue", "hex": "#2563eb", "wall_height_label": "8' 1-1/8\" Standard Wall", "precut_stud_label": "92-5/8\""}, "length_in": 216.0, "length_label": "18' 0\" (216\")", "first_stud_pull_in": 15.25, "x_and_go_callout": "15-1/4\" & GO", "oc_marks": ["1' 3-1/4\" (15-1/4\")", "2' 7-1/4\" (31-1/4\")", "3' 11-1/4\" (47-1/4\")", "5' 3-1/4\" (63-1/4\")", "6' 7-1/4\" (79-1/4\")", "7' 11-1/4\" (95-1/4\")", "9' 3-1/4\" (111-1/4\")", "10' 7-1/4\" (127-1/4\")", "11' 11-1/4\" (143-1/4\")", "13' 3-1/4\" (159-1/4\")", "14' 7-1/4\" (175-1/4\")", "15' 11-1/4\" (191-1/4\")", "17' 3-1/4\" (207-1/4\")"], "oc_marks_short": ["15-1/4\"", "31-1/4\"", "47-1/4\"", "63-1/4\"", "79-1/4\"", "95-1/4\"", "111-1/4\"", "127-1/4\"", "143-1/4\"", "159-1/4\"", "175-1/4\"", "191-1/4\"", "207-1/4\""], "precut_stud_count": 23, "goofy_alert": "", "crew_note": "Interior 2x4 Hall Wall. Pull from LEFT: 15-1/4\" & GO. All 3 interior door shoulders are identical 81\" 2x4 single shoulders.", "openings": [{"label": "MD1-34", "plan_old_code": "D-104", "room_and_type": "Master Bedroom Entry Door #1 (2/8 Prehung \u2014 34\" x 82-1/2\" R.O.)", "kind": "DOOR", "order_packet_verified": true, "ro_size_label": "34\" x 82-1/2\"", "left_king_label": "1' 9\" (21\")", "left_shoulder_label": "1' 10-1/2\" (22-1/2\")", "left_ro_start_label": "2' 0\" (24\")", "right_ro_end_label": "4' 10\" (58\")", "right_shoulder_end_label": "4' 11-1/2\" (59-1/2\")", "right_king_end_label": "5' 1\" (61\")", "header_stock": "2-ply 2x6 w/ 1/2\" OSB", "header_length_label": "3' 1\" (37\")", "shoulders_per_side": 1, "shoulder_length_label": "81\"", "sill_length_label": "N/A (Door)"}, {"label": "BR2D1-32", "plan_old_code": "D-105", "room_and_type": "Bedroom #2 Entry Door #1 (2/6 Prehung \u2014 32\" x 82-1/2\" R.O.)", "kind": "DOOR", "order_packet_verified": true, "ro_size_label": "32\" x 82-1/2\"", "left_king_label": "8' 9\" (105\")", "left_shoulder_label": "8' 10-1/2\" (106-1/2\")", "left_ro_start_label": "9' 0\" (108\")", "right_ro_end_label": "11' 8\" (140\")", "right_shoulder_end_label": "11' 9-1/2\" (141-1/2\")", "right_king_end_label": "11' 11\" (143\")", "header_stock": "2-ply 2x6 w/ 1/2\" OSB", "header_length_label": "2' 11\" (35\")", "shoulders_per_side": 1, "shoulder_length_label": "81\"", "sill_length_label": "N/A (Door)"}, {"label": "PDD1-30", "plan_old_code": "D-106", "room_and_type": "Powder Room Door #1 (2/4 Prehung \u2014 30\" x 82-1/2\" R.O.)", "kind": "DOOR", "order_packet_verified": true, "ro_size_label": "30\" x 82-1/2\"", "left_king_label": "13' 3\" (159\")", "left_shoulder_label": "13' 4-1/2\" (160-1/2\")", "left_ro_start_label": "13' 6\" (162\")", "right_ro_end_label": "16' 0\" (192\")", "right_shoulder_end_label": "16' 1-1/2\" (193-1/2\")", "right_king_end_label": "16' 3\" (195\")", "header_stock": "2-ply 2x6 w/ 1/2\" OSB", "header_length_label": "2' 9\" (33\")", "shoulders_per_side": 1, "shoulder_length_label": "81\"", "sill_length_label": "N/A (Door)"}], "intersections": [{"intersecting_wall_id": "W-8", "description": "Bedroom #2 / Master Closet Divider (2x4)", "left_backer_label": "6' 10-1/2\" (82-1/2\")", "left_edge_label": "7' 0\" (84\")", "right_edge_label": "7' 3-1/2\" (87-1/2\")", "right_backer_end_label": "7' 5\" (89\")", "thickness_label": "3-1/2\"", "top_plate_lap_gap_label": "Leave 3-1/2\" gap in 2nd Top Plate (7' 0\" (84\") to 7' 3-1/2\" (87-1/2\"))"}]}, {"wall_id": "W-8", "name": "Great Room Vault-to-Tray Transition & Fireplace Feature Wall", "lumber_size": "2x6", "color_code": "PURPLE_RAKE", "color_info": {"color": "Purple", "hex": "#7c3aed", "wall_height_label": "Vault / Rake / Custom Slope", "precut_stud_label": "104-5/8\""}, "length_in": 192.0, "length_label": "16' 0\" (192\")", "first_stud_pull_in": 8.25, "x_and_go_callout": "8-1/4\" & GO", "oc_marks": ["0' 8-1/4\" (8-1/4\")", "2' 1/4\" (24-1/4\")", "3' 4-1/4\" (40-1/4\")", "4' 8-1/4\" (56-1/4\")", "6' 1/4\" (72-1/4\")", "7' 4-1/4\" (88-1/4\")", "8' 8-1/4\" (104-1/4\")", "10' 1/4\" (120-1/4\")", "11' 4-1/4\" (136-1/4\")", "12' 8-1/4\" (152-1/4\")", "14' 1/4\" (168-1/4\")", "15' 4-1/4\" (184-1/4\")"], "oc_marks_short": ["8-1/4\"", "24-1/4\"", "40-1/4\"", "56-1/4\"", "72-1/4\"", "88-1/4\"", "104-1/4\"", "120-1/4\"", "136-1/4\"", "152-1/4\"", "168-1/4\"", "184-1/4\""], "precut_stud_count": 16, "goofy_alert": "TRAY CEILING & COFFERED SOFFIT RETURN + TV BACKING: Install 2x12 solid blocking between studs from 54\" to 78\" AFF above FP1-50 for mantle & TV mount. Top of wall steps down 12\" at both ends to catch tray ceiling perimeter soffit.", "crew_note": "Pull from LEFT: 8-1/4\" & GO. Verify fireplace manufacturer clearance-to-combustibles sheet before framing header.", "openings": [{"label": "FP1-50", "plan_old_code": "FP-42DV", "room_and_type": "Direct-Vent Gas Fireplace Chase Rough Opening #1", "kind": "WINDOW", "order_packet_verified": true, "ro_size_label": "50\" x 44\"", "left_king_label": "5' 8\" (68\")", "left_shoulder_label": "5' 9-1/2\" (69-1/2\")", "left_ro_start_label": "5' 11\" (71\")", "right_ro_end_label": "10' 1\" (121\")", "right_shoulder_end_label": "10' 2-1/2\" (122-1/2\")", "right_king_end_label": "10' 4\" (124\")", "header_stock": "2-ply 2x10 w/ 1/2\" OSB", "header_length_label": "4' 5\" (53\")", "shoulders_per_side": 1, "shoulder_length_label": "42-1/2\"", "sill_length_label": "50\""}], "intersections": []}]};
+let currentWallIdx = 0;
+let deferredPrompt = null;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('installBtn').style.display = 'inline-block';
+});
+
+function installApp() {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+}
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').catch(() => {});
+}
+
+function init() {
+  document.getElementById('goalBanner').innerHTML =
+    `<strong>PROJECT:</strong> ${DATA.project_name}<br><strong>TODAY'S CREW GOAL:</strong> ${DATA.daily_goal}`;
+
+  const leg = document.getElementById('legendGrid');
+  leg.innerHTML = Object.values(DATA.color_legend).map(c => `
+    <div class="leg-card" style="border-top-color:${c.hex}">
+      <div class="leg-title" style="color:${c.hex}">${c.color} Highlight — ${c.wall_height_label}</div>
+      <div>${c.meaning}</div>
+    </div>
+  `).join('');
+
+  renderWallPills();
+  renderActiveWall();
+  renderBatches();
+  renderWindowSchedule();
+  renderCustomCalculator();
+  renderChecklist();
+}
+
+function showTab(name, btn) {
+  ['walls','batches','windows','custom','qc'].forEach(t => {
+    document.getElementById('tab-' + t).style.display = (t === name) ? 'block' : 'none';
+  });
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function renderWallPills() {
+  const box = document.getElementById('wallPills');
+  box.innerHTML = DATA.walls.map((w, idx) => `
+    <button class="w-pill ${idx === currentWallIdx ? 'active' : ''}"
+            style="border-color:${w.color_info.hex}"
+            onclick="selectWall(${idx})">
+      <span style="color:${w.color_info.hex}">&#9632;</span> ${w.wall_id}: ${w.name}
+    </button>
+  `).join('');
+}
+
+function selectWall(idx) {
+  currentWallIdx = idx;
+  renderWallPills();
+  renderActiveWall();
+}
+
+function renderActiveWall() {
+  const w = DATA.walls[currentWallIdx];
+  const box = document.getElementById('activeWallCard');
+
+  const goofyHtml = w.goofy_alert
+    ? `<div class="goofy">&#9888; FIELD HEADS-UP / GOOFY AREA: ${w.goofy_alert}</div>`
+    : '';
+
+  const openingsRows = w.openings.map(op => `
+    <tr>
+      <td>
+        <strong style="font-size:15px;color:#38bdf8">${op.label}</strong>
+        <span class="badge b-old">Plan: ${op.plan_old_code}</span><br>
+        <span style="color:var(--muted);font-size:12px">${op.room_and_type}</span>
+      </td>
+      <td><strong>${op.ro_size_label}</strong><br><span class="badge b-ver">&#10003; Order Packet Verified</span></td>
+      <td>
+        <strong>King (L):</strong> ${op.left_king_label}<br>
+        <strong>Shoulders (L):</strong> ${op.left_shoulder_label}<br>
+        <strong style="color:#4ade80">R.O. Pull: ${op.left_ro_start_label} to ${op.right_ro_end_label}</strong><br>
+        <strong>Shoulders (R End):</strong> ${op.right_shoulder_end_label} | <strong>King (R End):</strong> ${op.right_king_end_label}
+      </td>
+      <td>
+        <strong>Header:</strong> ${op.header_stock} @ <strong>${op.header_length_label}</strong><br>
+        <strong>Pre-Made Supporting Shoulders:</strong> ${op.shoulders_per_side}x each side @ <strong>${op.shoulder_length_label}</strong><br>
+        <strong>Sill:</strong> ${op.sill_length_label}
+      </td>
+    </tr>
+  `).join('') || `<tr><td colspan="4">No openings in this wall.</td></tr>`;
+
+  const ixRows = w.intersections.map(ix => `
+    <tr>
+      <td><strong style="color:#fbbf24;font-size:15px">${ix.intersecting_wall_id} Channel</strong><br><span style="color:var(--muted);font-size:12px">${ix.description}</span></td>
+      <td>
+        <strong>Left Channel Stud (1-1/2"):</strong> ${ix.left_backer_label}<br>
+        <strong style="color:#4ade80">Partition Wall Face-to-Face (${ix.thickness_label}): ${ix.left_edge_label} to ${ix.right_edge_label}</strong><br>
+        <strong>Right Channel Stud End:</strong> ${ix.right_backer_end_label}
+      </td>
+      <td>
+        <strong>Build In Wall On Deck:</strong> Nail 2 channel studs + flat drywall backer blocks while framing wall.<br>
+        <strong style="color:#38bdf8">Double Top-Plate Tie-In:</strong> ${ix.top_plate_lap_gap_label}
+      </td>
+    </tr>
+  `).join('') || `<tr><td colspan="3">No intersecting partition channels on this plate.</td></tr>`;
+
+  const ticks = w.oc_marks_short.map((m, i) =>
+    `<span class="tick ${i===0 ? 'first' : ''}">${i===0 ? 'START ' + m + ' & GO' : m + ' X'}</span>`
+  ).join('');
+
+  box.innerHTML = `
+    <div class="card" style="border-top: 6px solid ${w.color_info.hex}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px">
+        <div>
+          <div style="font-size:12.5px;font-weight:700;color:${w.color_info.hex};text-transform:uppercase">
+            ${w.color_info.color} Highlight Zone &middot; ${w.color_info.wall_height_label} &middot; ${w.lumber_size} Wall
+          </div>
+          <h2 style="margin:4px 0 4px;font-size:22px">${w.wall_id} — ${w.name}</h2>
+          <div style="color:var(--muted);font-size:13.5px">${w.crew_note}</div>
+        </div>
+      </div>
+
+      ${goofyHtml}
+
+      <div class="callout-grid">
+        <div class="stat">
+          <div class="lbl">1. Hook Left End &amp; Pull Studs</div>
+          <div class="val go">${w.x_and_go_callout}</div>
+          <div style="font-size:12px;color:var(--muted)">Then 16" O.C. straight down plate</div>
+        </div>
+        <div class="stat">
+          <div class="lbl">2. Full Plate Length</div>
+          <div class="val">${w.length_label}</div>
+          <div style="font-size:12px;color:var(--muted)">${w.lumber_size} Bottom + Double Top Plate</div>
+        </div>
+        <div class="stat">
+          <div class="lbl">3. Factory Pre-Cut Studs</div>
+          <div class="val">${w.precut_stud_count} pcs @ ${w.color_info.precut_stud_label}</div>
+          <div style="font-size:12px;color:var(--muted)">${w.color_info.wall_height_label}</div>
+        </div>
+      </div>
+
+      <h3 style="margin:16px 0 6px;font-size:15px">A. Door &amp; Window Openings (Pulled from LEFT End of Plate — Verified Order Sizes)</h3>
+      <table>
+        <tr>
+          <th>Doyle Label (Replaces Plan Code)</th>
+          <th>Verified R.O. Size</th>
+          <th>Left-End Tape Pulls (King / Shoulders / R.O.)</th>
+          <th>Pre-Staged Header &amp; Supporting Shoulders</th>
+        </tr>
+        ${openingsRows}
+      </table>
+
+      <h3 style="margin:18px 0 6px;font-size:15px">B. Intersecting Partition Channels Built Into Wall on Deck (Pulled from LEFT End of Plate)</h3>
+      <table>
+        <tr><th>Intersecting Wall Tag</th><th>Left-End Tape Pulls (Channel Studs &amp; Partition Pocket)</th><th>On-Deck Assembly &amp; Double Top-Plate Lap Cutout</th></tr>
+        ${ixRows}
+      </table>
+
+      <h3 style="margin:18px 0 6px;font-size:15px">C. 16" O.C. Stud Layout Tape Marks (Pulled from LEFT End: ${w.x_and_go_callout})</h3>
+      <div class="tape-strip">${ticks}</div>
+    </div>
+  `;
+}
+
+function renderBatches() {
+  const hRows = DATA.batches.headers.map(h => `
+    <tr>
+      <td><strong style="font-size:15px;color:#4ade80">${h.count}x</strong></td>
+      <td><strong>${h.stock}</strong></td>
+      <td><strong style="font-size:15px">${h.length_label}</strong></td>
+      <td>${h.labels.join(', ')}</td>
+    </tr>
+  `).join('');
+
+  const sRows = DATA.batches.shoulders.map(s => `
+    <tr>
+      <td><strong style="font-size:15px;color:#38bdf8">${s.total_assemblies} assemblies</strong> (${s.total_pieces} pcs)</td>
+      <td><strong>${s.lumber} (${s.plies_per_side}-ply Pre-Made Supporting Shoulder)</strong></td>
+      <td><strong style="font-size:15px">${s.length_label}</strong></td>
+      <td>${s.labels.join(', ')}</td>
+    </tr>
+  `).join('');
+
+  const slRows = DATA.batches.sills.map(s => `
+    <tr>
+      <td><strong>${s.count}x</strong></td>
+      <td>${s.lumber} Rough Sill</td>
+      <td><strong>${s.length_label}</strong></td>
+      <td>${s.labels.join(', ')}</td>
+    </tr>
+  `).join('');
+
+  document.getElementById('tab-batches').innerHTML = `
+    <div class="card">
+      <h2 style="margin-top:0">Chop-Saw &amp; Pre-Assembly Bench — Grouped Header &amp; Supporting Shoulder Batches</h2>
+      <p style="color:var(--muted);font-size:13.5px">
+        Cut, nail together, and keel-label every header and supporting shoulder in batches before framing the walls. Stage each labeled bundle at its wall with the SkyTrak.
+      </p>
+      <h3>1. Grouped Header Cut List</h3>
+      <table>
+        <tr><th>Batch Qty</th><th>Header Stock</th><th>Exact Cut Length</th><th>Keel Labels to Write on Header</th></tr>
+        ${hRows}
+      </table>
+      <h3 style="margin-top:20px">2. Grouped Pre-Made Supporting Shoulders (Jacks)</h3>
+      <table>
+        <tr><th>Batch Qty</th><th>Shoulder Assembly</th><th>Exact Cut Length</th><th>Openings Served</th></tr>
+        ${sRows}
+      </table>
+      <h3 style="margin-top:20px">3. Grouped Window Rough Sills</h3>
+      <table>
+        <tr><th>Batch Qty</th><th>Lumber</th><th>Exact Cut Length</th><th>Window Labels</th></tr>
+        ${slRows}
+      </table>
+    </div>
+  `;
+}
+
+function renderWindowSchedule() {
+  const allOps = [];
+  DATA.walls.forEach(w => w.openings.forEach(op => allOps.push({wall_id: w.wall_id, wall_name: w.name, ...op})));
+  const rows = allOps.map(op => `
+    <tr>
+      <td><strong style="color:#38bdf8;font-size:15px">${op.label}</strong></td>
+      <td><span class="badge b-old">${op.plan_old_code}</span></td>
+      <td><strong>${op.wall_id}</strong> — ${op.room_and_type}</td>
+      <td><strong>${op.ro_size_label}</strong></td>
+      <td>${op.left_ro_start_label} to ${op.right_ro_end_label}</td>
+      <td><span class="badge b-ver">&#10003; VERIFIED VS. ORDER PACKET</span></td>
+    </tr>
+  `).join('');
+
+  document.getElementById('tab-windows').innerHTML = `
+    <div class="card">
+      <h2 style="margin-top:0">Window &amp; Door Order Packet Verification Gate</h2>
+      <p style="color:var(--muted);font-size:13.5px">
+        Every rough opening is cross-checked against the manufacturer window/door order packet in pre-planning and assigned a Doyle label (<strong>Room/Type + # + Width</strong>) so framers never build off a wrong blueprint callout like "TZ172".
+      </p>
+      <table>
+        <tr>
+          <th>Doyle Label</th>
+          <th>Ignored Plan Code</th>
+          <th>Wall &amp; Location</th>
+          <th>Order-Verified R.O.</th>
+          <th>Left-End Plate Location</th>
+          <th>Pre-Plan Gate</th>
+        </tr>
+        ${rows}
+      </table>
+    </div>
+  `;
+}
+
+function renderCustomCalculator() {
+  document.getElementById('tab-custom').innerHTML = `
+    <div class="card">
+      <h2 style="margin-top:0">Custom Wall Left-End "X &amp; Go" + Opening Calculator</h2>
+      <p style="color:var(--muted);font-size:13.5px">
+        Add a wall on the fly from your architectural scale notes: enter the plate length, the left-end first stud pull ("X and Go"), and an optional door/window opening to generate an instant crew pull card.
+      </p>
+      <div class="form-grid">
+        <div><label>Wall Tag &amp; Name</label><input id="c_name" value="W-9 — Basement Bedroom #3 Partition"></div>
+        <div><label>Wall Length (Inches)</label><input id="c_len" type="number" step="0.25" value="192"></div>
+        <div><label>Left-End First Stud Pull (Inches)</label><input id="c_pull" type="number" step="0.25" value="8.25"></div>
+        <div><label>Wall Height / Color Zone</label>
+          <select id="c_zone">
+            <option value="92-5/8&quot; Studs (Blue 8' Wall)">Blue — 8'1-1/8" (92-5/8" Pre-Cuts)</option>
+            <option value="104-5/8&quot; Studs (Green 9' Wall)" selected>Green — 9'1-1/8" (104-5/8" Pre-Cuts)</option>
+            <option value="116-5/8&quot; Studs (Orange 10' Wall)">Orange — 10'1-1/8" (116-5/8" Pre-Cuts)</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div><label>Doyle Opening Label</label><input id="c_oplabel" value="BR3W2-48"></div>
+        <div><label>Left-End to R.O. Start (Inches)</label><input id="c_rostart" type="number" step="0.25" value="60"></div>
+        <div><label>Verified R.O. Width (Inches)</label><input id="c_rowidth" type="number" step="0.25" value="48"></div>
+        <div><label>Shoulders Per Side (1 or 2)</label><input id="c_sh" type="number" min="1" max="3" value="2"></div>
+      </div>
+      <button class="btn" onclick="calcCustomWall()">Generate Left-End Crew Pull Sheet</button>
+      <div id="customOut" style="margin-top:16px"></div>
+    </div>
+  `;
+  calcCustomWall();
+}
+
+function fmtInJS(v) {
+  const whole = Math.floor(v);
+  const rem = Math.round((v - whole) * 4) / 4;
+  const fracMap = {0.25: '1/4', 0.5: '1/2', 0.75: '3/4'};
+  if (rem === 0) return whole + '"';
+  return whole + '-' + (fracMap[rem] || rem.toFixed(2)) + '"';
+}
+
+function calcCustomWall() {
+  const name = document.getElementById('c_name').value;
+  const len = parseFloat(document.getElementById('c_len').value) || 192;
+  const pull = parseFloat(document.getElementById('c_pull').value) || 8.25;
+  const zone = document.getElementById('c_zone').value;
+  const opLabel = document.getElementById('c_oplabel').value;
+  const roStart = parseFloat(document.getElementById('c_rostart').value) || 60;
+  const roWidth = parseFloat(document.getElementById('c_rowidth').value) || 48;
+  const sh = parseInt(document.getElementById('c_sh').value) || 2;
+
+  const shSpan = 1.5 * sh;
+  const hdrLen = roWidth + 2 * shSpan;
+  const leftSh = roStart - shSpan;
+  const leftKing = leftSh - 1.5;
+  const rightRo = roStart + roWidth;
+  const rightSh = rightRo + shSpan;
+  const rightKing = rightSh + 1.5;
+
+  const marks = [];
+  for (let p = pull; p < len - 1.5; p += 16) marks.push(fmtInJS(p));
+
+  document.getElementById('customOut').innerHTML = `
+    <div class="card" style="background:#020617">
+      <h3 style="margin-top:0">${name} — ${zone}</h3>
+      <p><strong>Left-End Stud Pull:</strong> <span style="color:#4ade80;font-weight:800">${fmtInJS(pull)} &amp; GO</span> &nbsp;|&nbsp; <strong>Plate Length:</strong> ${fmtInJS(len)}</p>
+      <p><strong>Opening ${opLabel}:</strong> King(L) <code>${fmtInJS(leftKing)}</code> &middot; Shoulders(L) <code>${fmtInJS(leftSh)}</code> &middot; <strong style="color:#38bdf8">R.O. <code>${fmtInJS(roStart)}</code> to <code>${fmtInJS(rightRo)}</code></strong> &middot; Shoulders(R) <code>${fmtInJS(rightSh)}</code> &middot; King(R) <code>${fmtInJS(rightKing)}</code></p>
+      <p><strong>Pre-Staged Header Length:</strong> <code>${fmtInJS(hdrLen)}</code> &nbsp;|&nbsp; <strong>Pre-Made Supporting Shoulders:</strong> <code>${sh}x each side @ 81"</code></p>
+      <div class="tape-strip">${marks.map((m,i) => `<span class="tick ${i===0?'first':''}">${i===0 ? 'START '+m+' & GO' : m+' X'}</span>`).join('')}</div>
+    </div>
+  `;
+}
+
+function renderChecklist() {
+  const items = [
+    "Window & Door R.O. Verification: Every rough opening measured with tape against the Order-Packet Verified schedule (PD1-82, LLPD1-82, GRW1-60, MS1-60, BR2W1-48, BR3W1-48, GD1-194).",
+    "Pre-Made Supporting Shoulders & Header Bearing: Double supporting shoulders installed tightly under all spans >= 48"; zero gaps between bottom plate, shoulder, and header.",
+    "Double Top-Plate Laps & Partition Tie-Ins: Minimum 48" lap across all top-plate joints; intersecting interior partition walls (W-6 through W-12) lapped and nailed into exterior top plates.",
+    "Walkout Lower-Level Exposure Wall (W-1): Treated bottom plate bolted every 48" max and within 12" of plate breaks; step-frost wall anchor bolts washered and tightened.",
+    "Garage Portal Wall Hold-Downs (W-6 / GD1-194): Simpson portal hold-down brackets fastened to embedded foundation anchor bolts at both king posts before sheathing.",
+    "Tray Ceiling & Fireplace Blocking (W-2, W-3, W-8): 9'0" perimeter tray ceiling soffit ledgers snapped and nailed; 2x12 TV/mantle backing installed above FP1-50; fireblocking installed at all soffit/chase drops.",
+    "Plumb, Line & String-Plane Check: All tall 9' and 10' walls plumbed, string-lined top plate to top plate, and braced prior to setting roof trusses."
+  ];
+  document.getElementById('tab-qc').innerHTML = `
+    <div class="card">
+      <h2 style="margin-top:0">Standardized Municipal Framing Pre-Inspection Checklist</h2>
+      <p style="color:var(--muted);font-size:13.5px">
+        Co-developed with the municipal building inspector at Doyle's Contracting to guarantee first-time framing inspection pass rates across 100+ builds.
+      </p>
+      ${items.map((txt, i) => `
+        <label style="display:flex;align-items:flex-start;gap:10px;padding:10px;border-bottom:1px solid var(--border);color:var(--text);font-size:14px;cursor:pointer">
+          <input type="checkbox" style="width:18px;height:18px;margin-top:2px">
+          <span><strong>#${i+1}.</strong> ${txt}</span>
+        </label>
+      `).join('')}
+    </div>
+  `;
+}
+
+init();
+</script>
+</body>
+</html>

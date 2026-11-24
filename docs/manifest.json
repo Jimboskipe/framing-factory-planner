@@ -1,0 +1,16 @@
+{
+  "name": "Framing Factory Planner — Doyle's Contracting",
+  "short_name": "FramingFactory",
+  "description": "Pre-staged residential & commercial framing system: left-end 'X and Go' plate layout, window-order verified openings (PD1-82, MS1-60), grouped header/shoulder batches, color-coded wall zones, and crew work cards.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#1e293b",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='18' fill='%23ea580c'/><text x='50' y='66' font-size='52' text-anchor='middle' fill='white' font-family='Arial' font-weight='bold'>FF</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    }
+  ]
+}
