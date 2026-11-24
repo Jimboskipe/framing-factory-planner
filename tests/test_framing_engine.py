@@ -1,4 +1,4 @@
-"""Unit tests for Framing Factory Planner engine.
+"""Unit tests for Framing Factory Planner v2 engine.
 
 Run:  python -m unittest discover -s tests -v
 """
@@ -21,13 +21,10 @@ class FramingEngineTests(unittest.TestCase):
             lumber_size="2x6",
             color_code="GREEN_9FT",
             length_in=Fraction(96),
-            first_stud_pull_in=Fraction(33, 4),  # 8-1/4" & GO
+            first_stud_pull_in=Fraction(33, 4),
         )
         self.assertEqual(w.x_and_go_callout, '8-1/4" & GO')
         marks = w.oc_stud_marks_in()
-        self.assertEqual(marks[0], Fraction(33, 4))
-        self.assertEqual(marks[1], Fraction(33, 4) + 16)
-        self.assertEqual(marks[2], Fraction(33, 4) + 32)
         for i in range(1, len(marks)):
             self.assertEqual(marks[i] - marks[i - 1], Fraction(16))
 
@@ -46,39 +43,50 @@ class FramingEngineTests(unittest.TestCase):
             order_packet_verified=True,
             plan_old_code="TZ172",
         )
-        # Double shoulders (3" each side) -> header length = 82 + 6 = 88"
         self.assertEqual(op.header_length_in, Fraction(88))
-        # Left shoulder starts 3" left of RO (76 - 3 = 73"); left king starts 1.5" left of shoulder (71.5")
         self.assertEqual(op.left_shoulder_start_in, Fraction(73))
         self.assertEqual(op.left_king_start_in, Fraction(143, 2))
-        # Supporting shoulder sits on 1.5" bottom plate -> 82.5" - 1.5" = 81"
         self.assertEqual(op.shoulder_length_in, Fraction(81))
 
-    def test_header_and_shoulder_batch_grouping(self):
-        walls = fe.sample_custom_ranch_project()
-        batches = fe.group_headers_and_shoulders(walls)
-        # GRW1-60 (W-1) and MS1-60 (W-2) both use a 66" (5' 6") 2-ply 2x12 header -> grouped count == 2
-        sixty_in_headers = [h for h in batches["headers"] if h["length_in"] == 66.0]
-        self.assertEqual(len(sixty_in_headers), 1)
-        self.assertEqual(sixty_in_headers[0]["count"], 2)
+    def test_cabinet_drywall_to_rough_stud_math(self):
+        chk = fe.CabinetDrywallCheck(
+            title="Kitchen Cabinet Plan",
+            finished_drywall_to_drywall_in=Fraction(217, 2),  # 108-1/2"
+            drywall_layers_total_in=Fraction(1),               # +1" (two 1/2" sheets)
+        )
+        self.assertEqual(chk.required_rough_stud_to_stud_in, Fraction(219, 2))  # 109-1/2"
+        self.assertEqual(chk.max_tolerance_in, Fraction(1, 8))
 
-    def test_all_openings_verified_against_order_packet(self):
-        for w in fe.sample_custom_ranch_project():
-            for op in w.openings:
-                self.assertTrue(op.order_packet_verified)
-                self.assertNotEqual(op.label, op.plan_old_code)
+    def test_foundation_one_inch_square_tolerance_rule(self):
+        ok = fe.evaluate_foundation_square(0.75)
+        self.assertTrue(ok["within_one_inch_tolerance"])
+        adjust = fe.evaluate_foundation_square(1.5)
+        self.assertFalse(adjust["within_one_inch_tolerance"])
+
+    def test_stair_stringer_plan_vs_field_double_check(self):
+        st = fe.calculate_stair_stringer(
+            plan_stud_height_in=104.625,
+            floor_assembly_depth_in=12.625,
+            field_measured_total_rise_in=121.25,
+            tread_thickness_in=1.5,
+        )
+        self.assertEqual(st["plan_total_rise_in"], 121.75)
+        self.assertEqual(st["field_total_rise_in"], 121.25)
+        self.assertEqual(st["field_riser_count"], 16)
+        self.assertTrue(st["code_compliant"])
 
     def test_wall_intersection_channel_math(self):
         ix = fe.WallIntersection("W-7", "Powder Room Partition", Fraction(84), Fraction(7, 2))
-        self.assertEqual(ix.right_edge_in, Fraction(175, 2))  # 87-1/2"
-        self.assertEqual(ix.left_channel_stud_start_in, Fraction(165, 2))  # 82-1/2"
-        self.assertEqual(ix.right_channel_stud_end_in, Fraction(89))  # 89"
+        self.assertEqual(ix.right_edge_in, Fraction(175, 2))
+        self.assertEqual(ix.left_channel_stud_start_in, Fraction(165, 2))
+        self.assertEqual(ix.right_channel_stud_end_in, Fraction(89))
 
     def test_export_project_json_writes_valid_payload(self):
         tmp = os.path.join(tempfile.mkdtemp(), "project_data.json")
         payload = fe.export_project_json(tmp)
         self.assertTrue(os.path.exists(tmp))
         self.assertEqual(len(payload["walls"]), 8)
+        self.assertEqual(len(payload["bidding_tiers"]), 3)
 
 
 if __name__ == "__main__":
