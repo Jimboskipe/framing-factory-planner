@@ -1,4 +1,8 @@
-"""Generate the self-contained Framing Factory Planner PWA (docs/index.html) embedding the exported project data."""
+"""Generate the clean, numbers-only Framing Factory Planner PWA (docs/index.html).
+
+No carpentry lectures on screen — strictly the pre-figured measurements, labels, cut batches,
+blocking locations, stair plan-vs-field numbers, yard map, and daily goal hours a crew needs.
+"""
 import json
 import os
 import framing_engine as fe
@@ -17,504 +21,299 @@ def build_html():
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0f172a">
-<title>Framing Factory Planner — Doyle's Contracting System</title>
+<title>Framing Factory — Crew Layout &amp; Cut Sheet</title>
 <link rel="manifest" href="manifest.json">
 <style>
   :root {{
     --bg: #0f172a; --card: #1e293b; --border: #334155; --text: #f8fafc;
     --muted: #94a3b8; --accent: #ea580c; --green: #16a34a; --blue: #2563eb;
-    --purple: #7c3aed; --red: #dc2626; --amber: #d97706;
   }}
   * {{ box-sizing: border-box; }}
-  body {{
-    margin: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-    background: var(--bg); color: var(--text); line-height: 1.45;
-  }}
-  header {{
-    background: #020617; border-bottom: 2px solid var(--accent);
-    padding: 16px 20px; position: sticky; top: 0; z-index: 20;
-  }}
-  .hdr-top {{ display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; max-width: 1200px; margin: 0 auto; }}
-  h1 {{ margin: 0; font-size: 20px; letter-spacing: 0.3px; }}
-  .sub {{ color: var(--muted); font-size: 13px; margin-top: 2px; }}
-  .btn {{
-    background: var(--accent); color: #fff; border: none; padding: 9px 15px;
-    border-radius: 7px; font-weight: 700; font-size: 13px; cursor: pointer;
-  }}
+  body {{ margin: 0; font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); }}
+  header {{ background: #020617; border-bottom: 2px solid var(--accent); padding: 12px 16px; position: sticky; top: 0; z-index: 20; }}
+  .hdr {{ display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; max-width: 1180px; margin: 0 auto; }}
+  h1 {{ margin: 0; font-size: 18px; }}
+  .btn {{ background: var(--accent); color: #fff; border: none; padding: 7px 13px; border-radius: 6px; font-weight: 700; font-size: 12.5px; cursor: pointer; }}
   .btn.sec {{ background: #334155; }}
-  .btn.grn {{ background: var(--green); }}
-  .wrap {{ max-width: 1200px; margin: 0 auto; padding: 18px 16px 60px; }}
-  .goal-banner {{
-    background: linear-gradient(90deg, #1e293b, #0f172a);
-    border-left: 5px solid var(--accent); border: 1px solid var(--border);
-    border-left-width: 6px; border-left-color: var(--accent);
-    padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 14px;
-  }}
-  .legend-grid {{
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-    gap: 10px; margin-bottom: 18px;
-  }}
-  .leg-card {{
-    background: var(--card); border: 1px solid var(--border); border-radius: 8px;
-    padding: 10px 12px; border-top: 4px solid #fff; font-size: 12.5px;
-  }}
-  .leg-title {{ font-weight: 700; font-size: 13.5px; margin-bottom: 3px; }}
-  .tabs {{ display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }}
-  .tab {{
-    background: var(--card); color: var(--text); border: 1px solid var(--border);
-    padding: 9px 16px; border-radius: 7px; font-weight: 700; cursor: pointer; font-size: 13.5px;
-  }}
-  .tab.active {{ background: var(--accent); border-color: var(--accent); color: #fff; }}
-  .wall-selector {{ display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }}
-  .w-pill {{
-    padding: 8px 13px; border-radius: 7px; border: 2px solid var(--border);
-    background: var(--card); color: var(--text); cursor: pointer; font-weight: 700; font-size: 13px;
-  }}
-  .w-pill.active {{ outline: 2px solid #fff; }}
-  .card {{
-    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
-    padding: 16px; margin-bottom: 16px;
-  }}
-  .callout-grid {{
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 12px; margin: 12px 0 16px;
-  }}
-  .stat {{
-    background: #020617; border: 1px solid var(--border); border-radius: 8px;
-    padding: 10px 14px;
-  }}
-  .stat .lbl {{ color: var(--muted); font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.6px; }}
-  .stat .val {{ font-size: 21px; font-weight: 800; margin-top: 3px; color: #38bdf8; }}
-  .stat .val.go {{ color: #4ade80; }}
-  .goofy {{
-    background: rgba(220, 38, 38, 0.16); border: 2px solid #ef4444;
-    color: #fecaca; padding: 12px 15px; border-radius: 8px; margin: 12px 0;
-    font-weight: 600; font-size: 13.5px;
-  }}
-  table {{ width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px; }}
-  th, td {{ border: 1px solid var(--border); padding: 8px 10px; text-align: left; }}
-  th {{ background: #020617; color: #cbd5e1; font-size: 12px; text-transform: uppercase; }}
-  .badge {{
-    display: inline-block; padding: 2px 8px; border-radius: 5px; font-weight: 700; font-size: 11.5px;
-  }}
-  .b-ver {{ background: rgba(22, 163, 74, 0.25); color: #86efac; border: 1px solid #16a34a; }}
-  .b-old {{ background: rgba(148, 163, 184, 0.15); color: #94a3b8; text-decoration: line-through; margin-left: 6px; }}
-  .tape-strip {{
-    display: flex; flex-wrap: wrap; gap: 6px; background: #020617;
-    padding: 12px; border-radius: 8px; border: 1px solid var(--border);
-  }}
-  .tick {{
-    background: #1e293b; border: 1px solid #475569; padding: 4px 8px;
-    border-radius: 5px; font-family: monospace; font-size: 12.5px;
-  }}
-  .tick.first {{ background: #14532d; border-color: #22c55e; color: #bbf7d0; font-weight: 700; }}
-  .form-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; margin-bottom: 12px; }}
-  input, select {{
-    width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border);
-    background: #020617; color: var(--text); font-size: 13.5px;
-  }}
-  label {{ font-size: 12px; color: var(--muted); display: block; margin-bottom: 4px; font-weight: 600; }}
+  .btn.blu {{ background: var(--blue); }}
+  .wrap {{ max-width: 1180px; margin: 0 auto; padding: 14px 14px 50px; }}
+  .goal {{ background: #1e293b; border-left: 5px solid var(--accent); padding: 10px 14px; border-radius: 6px; margin-bottom: 12px; font-size: 13.5px; }}
+  .legend {{ display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }}
+  .leg {{ background: var(--card); border: 1px solid var(--border); border-left: 5px solid #fff; padding: 5px 10px; border-radius: 5px; font-size: 12px; font-weight: 700; }}
+  .tabs {{ display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }}
+  .tab {{ background: var(--card); color: var(--text); border: 1px solid var(--border); padding: 7px 13px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 12.5px; }}
+  .tab.active {{ background: var(--accent); border-color: var(--accent); }}
+  .pills {{ display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }}
+  .pill {{ padding: 6px 11px; border-radius: 6px; border: 2px solid var(--border); background: var(--card); color: var(--text); cursor: pointer; font-weight: 700; font-size: 12.5px; }}
+  .pill.active {{ outline: 2px solid #fff; }}
+  .card {{ background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 14px; margin-bottom: 14px; }}
+  .stats {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 8px; margin: 10px 0 14px; }}
+  .stat {{ background: #020617; border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px; }}
+  .stat .l {{ color: var(--muted); font-size: 11px; text-transform: uppercase; }}
+  .stat .v {{ font-size: 20px; font-weight: 800; color: #38bdf8; margin-top: 2px; }}
+  .stat .v.go {{ color: #4ade80; }}
+  .alert {{ background: rgba(220,38,38,0.18); border: 1.5px solid #ef4444; color: #fecaca; padding: 9px 12px; border-radius: 6px; margin: 8px 0; font-weight: 600; font-size: 13px; }}
+  table {{ width: 100%; border-collapse: collapse; font-size: 12.5px; margin-top: 6px; }}
+  th, td {{ border: 1px solid var(--border); padding: 6px 8px; text-align: left; vertical-align: top; }}
+  th {{ background: #020617; color: #cbd5e1; font-size: 11px; text-transform: uppercase; }}
+  .badge {{ display: inline-block; padding: 1px 6px; border-radius: 4px; font-weight: 700; font-size: 11px; }}
+  .b-ver {{ background: rgba(22,163,74,0.25); color: #86efac; border: 1px solid #16a34a; }}
+  .b-lock {{ background: rgba(220,38,38,0.25); color: #fca5a5; border: 1px solid #ef4444; }}
+  .b-flex {{ background: rgba(56,189,248,0.18); color: #bae6fd; }}
+  .b-old {{ color: #94a3b8; text-decoration: line-through; margin-left: 5px; }}
+  .tape {{ display: flex; flex-wrap: wrap; gap: 5px; background: #020617; padding: 9px; border-radius: 6px; border: 1px solid var(--border); }}
+  .tk {{ background: #1e293b; border: 1px solid #475569; padding: 3px 7px; border-radius: 4px; font-family: monospace; font-size: 12px; }}
+  .tk.st {{ background: #14532d; border-color: #22c55e; color: #bbf7d0; font-weight: 700; }}
+  .fgrid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(165px, 1fr)); gap: 8px; margin-bottom: 10px; }}
+  input, select {{ width: 100%; padding: 7px 9px; border-radius: 5px; border: 1px solid var(--border); background: #020617; color: var(--text); font-size: 13px; }}
+  label {{ font-size: 11px; color: var(--muted); display: block; margin-bottom: 3px; font-weight: 600; }}
+  .mbg {{ display: none; position: fixed; inset: 0; background: rgba(2,6,23,0.82); z-index: 50; align-items: center; justify-content: center; padding: 14px; }}
+  .mdl {{ background: var(--card); border: 2px solid var(--accent); border-radius: 8px; max-width: 600px; width: 100%; padding: 16px; }}
   @media print {{
     body {{ background: #fff; color: #000; }}
-    header, .tabs, .wall-selector, .no-print {{ display: none !important; }}
+    header, .tabs, .pills {{ display: none !important; }}
     .card, .stat {{ background: #fff; border: 1px solid #000; color: #000; }}
-    .goofy {{ background: #fee2e2; color: #7f1d1d; border: 2px solid #dc2626; }}
-    th {{ background: #e2e8f0; color: #000; }}
     th, td {{ border: 1px solid #000; color: #000; }}
   }}
 </style>
 </head>
 <body>
 <header>
-  <div class="hdr-top">
-    <div>
-      <h1>FRAMING FACTORY PLANNER — DOYLE'S CONTRACTING SYSTEM</h1>
-      <div class="sub">Left-End "X &amp; Go" Plate Layout &middot; Order-Packet Verified Openings &middot; Pre-Made Header/Shoulder Batches &middot; Crew Work Cards</div>
-    </div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn grn" id="installBtn" style="display:none" onclick="installApp()">Install Crew App</button>
-      <button class="btn sec" onclick="window.print()">Print Active Crew Sheet</button>
+  <div class="hdr">
+    <h1>FRAMING FACTORY — CREW LAYOUT &amp; CUT SHEET</h1>
+    <div style="display:flex;gap:8px">
+      <button class="btn" id="installBtn" style="display:none" onclick="if(deferredPrompt)deferredPrompt.prompt()">Install App</button>
+      <button class="btn sec" onclick="window.print()">Print Active Sheet</button>
     </div>
   </div>
 </header>
 
 <div class="wrap">
-  <div class="goal-banner" id="goalBanner"></div>
-
-  <div class="legend-grid" id="legendGrid"></div>
+  <div class="goal" id="goalBanner"></div>
+  <div class="legend" id="legendBar"></div>
 
   <div class="tabs">
-    <button class="tab active" onclick="showTab('walls', this)">1. Crew Wall Pull Sheets (Left-End Tape)</button>
-    <button class="tab" onclick="showTab('batches', this)">2. Cut Bench: Grouped Headers &amp; Pre-Made Shoulders</button>
-    <button class="tab" onclick="showTab('windows', this)">3. Window &amp; Door Order Verification Schedule</button>
-    <button class="tab" onclick="showTab('custom', this)">4. Custom Wall / "X &amp; Go" Calculator</button>
-    <button class="tab" onclick="showTab('qc', this)">5. Municipal Framing Pre-Inspection Checklist</button>
+    <button class="tab active" onclick="showTab('walls', this)">1. Wall Pull Sheets</button>
+    <button class="tab" onclick="showTab('batches', this)">2. Cut Bench (Headers &amp; Shoulders)</button>
+    <button class="tab" onclick="showTab('stairs', this)">3. Stairs (Plan vs. Field)</button>
+    <button class="tab" onclick="showTab('yard', this)">4. Yard &amp; Deck Staging Map</button>
+    <button class="tab" onclick="showTab('bidding', this)">5. Daily Goal &amp; Crew Hours</button>
   </div>
 
   <div id="tab-walls">
-    <div class="wall-selector" id="wallPills"></div>
+    <div class="pills" id="wallPills"></div>
     <div id="activeWallCard"></div>
   </div>
-
   <div id="tab-batches" style="display:none"></div>
-  <div id="tab-windows" style="display:none"></div>
-  <div id="tab-custom" style="display:none"></div>
-  <div id="tab-qc" style="display:none"></div>
+  <div id="tab-stairs" style="display:none"></div>
+  <div id="tab-yard" style="display:none"></div>
+  <div id="tab-bidding" style="display:none"></div>
+</div>
+
+<div class="mbg" id="modalBg" onclick="closeModal()">
+  <div class="mdl" onclick="event.stopPropagation()">
+    <div id="modalContent"></div>
+    <div style="margin-top:12px;text-align:right"><button class="btn" onclick="closeModal()">Close</button></div>
+  </div>
 </div>
 
 <script>
 const DATA = {data_js};
-let currentWallIdx = 0;
-let deferredPrompt = null;
-
-window.addEventListener('beforeinstallprompt', (e) => {{
-  e.preventDefault();
-  deferredPrompt = e;
-  document.getElementById('installBtn').style.display = 'inline-block';
-}});
-
-function installApp() {{
-  if (!deferredPrompt) return;
-  deferredPrompt.prompt();
-}}
-
-if ('serviceWorker' in navigator) {{
-  navigator.serviceWorker.register('./sw.js').catch(() => {{}});
-}}
-
-function init() {{
-  document.getElementById('goalBanner').innerHTML =
-    `<strong>PROJECT:</strong> ${{DATA.project_name}}<br><strong>TODAY'S CREW GOAL:</strong> ${{DATA.daily_goal}}`;
-
-  const leg = document.getElementById('legendGrid');
-  leg.innerHTML = Object.values(DATA.color_legend).map(c => `
-    <div class="leg-card" style="border-top-color:${{c.hex}}">
-      <div class="leg-title" style="color:${{c.hex}}">${{c.color}} Highlight — ${{c.wall_height_label}}</div>
-      <div>${{c.meaning}}</div>
-    </div>
-  `).join('');
-
-  renderWallPills();
-  renderActiveWall();
-  renderBatches();
-  renderWindowSchedule();
-  renderCustomCalculator();
-  renderChecklist();
-}}
+let currentWallIdx = 0, deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {{ e.preventDefault(); deferredPrompt = e; document.getElementById('installBtn').style.display = 'inline-block'; }});
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {{}});
+function openModal(h) {{ document.getElementById('modalContent').innerHTML = h; document.getElementById('modalBg').style.display = 'flex'; }}
+function closeModal() {{ document.getElementById('modalBg').style.display = 'none'; }}
 
 function showTab(name, btn) {{
-  ['walls','batches','windows','custom','qc'].forEach(t => {{
-    document.getElementById('tab-' + t).style.display = (t === name) ? 'block' : 'none';
-  }});
+  ['walls','batches','stairs','yard','bidding'].forEach(t => document.getElementById('tab-' + t).style.display = (t === name) ? 'block' : 'none');
   document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
 }}
 
+function init() {{
+  document.getElementById('goalBanner').innerHTML = `<strong>${{DATA.project_name}}</strong><br><strong>TODAY'S GOAL:</strong> ${{DATA.daily_goal}}`;
+  document.getElementById('legendBar').innerHTML = Object.values(DATA.color_legend).map(c =>
+    `<div class="leg" style="border-left-color:${{c.hex}}"><span style="color:${{c.hex}}">${{c.color}}:</span> ${{c.wall_height_label}} (${{c.precut_stud_label}} studs)</div>`
+  ).join('');
+  renderWallPills(); renderActiveWall(); renderBatches(); renderStairs(); renderYard(); renderBidding();
+}}
+
 function renderWallPills() {{
-  const box = document.getElementById('wallPills');
-  box.innerHTML = DATA.walls.map((w, idx) => `
-    <button class="w-pill ${{idx === currentWallIdx ? 'active' : ''}}"
-            style="border-color:${{w.color_info.hex}}"
-            onclick="selectWall(${{idx}})">
+  document.getElementById('wallPills').innerHTML = DATA.walls.map((w, i) => `
+    <button class="pill ${{i === currentWallIdx ? 'active' : ''}}" style="border-color:${{w.color_info.hex}}" onclick="currentWallIdx=${{i}};renderWallPills();renderActiveWall()">
       <span style="color:${{w.color_info.hex}}">&#9632;</span> ${{w.wall_id}}: ${{w.name}}
     </button>
   `).join('');
 }}
 
-function selectWall(idx) {{
-  currentWallIdx = idx;
-  renderWallPills();
-  renderActiveWall();
+function showCab(wIdx, cIdx) {{
+  const c = DATA.walls[wIdx].cabinet_checks[cIdx];
+  openModal(`
+    <h3 style="margin:0 0 8px">${{c.title}}</h3>
+    <table>
+      <tr><th>Plan Drywall-to-Drywall</th><td><strong style="color:#38bdf8">${{c.finished_label}}</strong></td></tr>
+      <tr><th>Drywall Allowance</th><td>+ ${{c.drywall_allowance_label}}</td></tr>
+      <tr><th>Rough Stud-to-Stud</th><td><strong style="color:#4ade80;font-size:17px">${{c.required_rough_label}} (+/- ${{c.max_tolerance_label}})</strong></td></tr>
+    </table>
+    <p style="font-size:13px;margin-top:8px">${{c.detail_note}}</p>
+  `);
 }}
 
 function renderActiveWall() {{
   const w = DATA.walls[currentWallIdx];
-  const box = document.getElementById('activeWallCard');
+  const cabBtns = (w.cabinet_checks || []).map((c, ci) =>
+    `<button class="btn blu" style="margin:6px 6px 0 0" onclick="showCab(${{currentWallIdx}},${{ci}})">${{c.title}} (${{c.finished_label}} DW -> ${{c.required_rough_label}} Rough)</button>`
+  ).join('');
 
-  const goofyHtml = w.goofy_alert
-    ? `<div class="goofy">&#9888; FIELD HEADS-UP / GOOFY AREA: ${{w.goofy_alert}}</div>`
-    : '';
-
-  const openingsRows = w.openings.map(op => `
+  const opRows = w.openings.map(op => `
     <tr>
-      <td>
-        <strong style="font-size:15px;color:#38bdf8">${{op.label}}</strong>
-        <span class="badge b-old">Plan: ${{op.plan_old_code}}</span><br>
-        <span style="color:var(--muted);font-size:12px">${{op.room_and_type}}</span>
-      </td>
-      <td><strong>${{op.ro_size_label}}</strong><br><span class="badge b-ver">&#10003; Order Packet Verified</span></td>
-      <td>
-        <strong>King (L):</strong> ${{op.left_king_label}}<br>
-        <strong>Shoulders (L):</strong> ${{op.left_shoulder_label}}<br>
-        <strong style="color:#4ade80">R.O. Pull: ${{op.left_ro_start_label}} to ${{op.right_ro_end_label}}</strong><br>
-        <strong>Shoulders (R End):</strong> ${{op.right_shoulder_end_label}} | <strong>King (R End):</strong> ${{op.right_king_end_label}}
-      </td>
-      <td>
-        <strong>Header:</strong> ${{op.header_stock}} @ <strong>${{op.header_length_label}}</strong><br>
-        <strong>Pre-Made Supporting Shoulders:</strong> ${{op.shoulders_per_side}}x each side @ <strong>${{op.shoulder_length_label}}</strong><br>
-        <strong>Sill:</strong> ${{op.sill_length_label}}
-      </td>
+      <td><strong style="color:#38bdf8;font-size:14.5px">${{op.label}}</strong><span class="badge b-old">${{op.plan_old_code}}</span><br><span style="color:var(--muted);font-size:11.5px">${{op.room_and_type}}</span></td>
+      <td><strong>${{op.ro_size_label}}</strong> <span class="badge b-ver">&#10003; Order Verified</span></td>
+      <td>King(L): <strong>${{op.left_king_label}}</strong> &middot; Sh(L): <strong>${{op.left_shoulder_label}}</strong><br><strong style="color:#4ade80">R.O.: ${{op.left_ro_start_label}} to ${{op.right_ro_end_label}}</strong><br>Sh(R): <strong>${{op.right_shoulder_end_label}}</strong> &middot; King(R): <strong>${{op.right_king_end_label}}</strong></td>
+      <td>Hdr: <strong>${{op.header_stock}} @ ${{op.header_length_label}}</strong><br>Shoulders: <strong>${{op.shoulders_per_side}}x/side @ ${{op.shoulder_length_label}}</strong> &middot; Sill: <strong>${{op.sill_length_label}}</strong></td>
     </tr>
-  `).join('') || `<tr><td colspan="4">No openings in this wall.</td></tr>`;
+  `).join('') || `<tr><td colspan="4">None</td></tr>`;
 
   const ixRows = w.intersections.map(ix => `
     <tr>
-      <td><strong style="color:#fbbf24;font-size:15px">${{ix.intersecting_wall_id}} Channel</strong><br><span style="color:var(--muted);font-size:12px">${{ix.description}}</span></td>
-      <td>
-        <strong>Left Channel Stud (1-1/2"):</strong> ${{ix.left_backer_label}}<br>
-        <strong style="color:#4ade80">Partition Wall Face-to-Face (${{ix.thickness_label}}): ${{ix.left_edge_label}} to ${{ix.right_edge_label}}</strong><br>
-        <strong>Right Channel Stud End:</strong> ${{ix.right_backer_end_label}}
-      </td>
-      <td>
-        <strong>Build In Wall On Deck:</strong> Nail 2 channel studs + flat drywall backer blocks while framing wall.<br>
-        <strong style="color:#38bdf8">Double Top-Plate Tie-In:</strong> ${{ix.top_plate_lap_gap_label}}
-      </td>
+      <td><strong style="color:#fbbf24">${{ix.intersecting_wall_id}}</strong> — ${{ix.description}} <span class="badge ${{ix.tolerance_rule.indexOf('LOCKED')!==-1?'b-lock':'b-flex'}}">${{ix.tolerance_rule}}</span></td>
+      <td>Backer(L): <strong>${{ix.left_backer_label}}</strong> &middot; <strong style="color:#4ade80">Pocket (${{ix.thickness_label}}): ${{ix.left_edge_label}} to ${{ix.right_edge_label}}</strong> &middot; Backer(R): <strong>${{ix.right_backer_end_label}}</strong></td>
+      <td>${{ix.top_plate_lap_gap_label}}</td>
     </tr>
-  `).join('') || `<tr><td colspan="3">No intersecting partition channels on this plate.</td></tr>`;
+  `).join('') || `<tr><td colspan="3">None</td></tr>`;
 
-  const ticks = w.oc_marks_short.map((m, i) =>
-    `<span class="tick ${{i===0 ? 'first' : ''}}">${{i===0 ? 'START ' + m + ' & GO' : m + ' X'}}</span>`
-  ).join('');
+  const blkRows = (w.blocking || []).map(b => `
+    <tr><td><strong style="color:#f472b6">${{b.kind}}</strong> — ${{b.label}}</td><td><strong>${{b.lumber}}</strong></td><td><strong style="color:#4ade80">${{b.height_aff_label}}</strong></td><td>${{b.location_note}}</td></tr>
+  `).join('') || `<tr><td colspan="4">None</td></tr>`;
 
-  box.innerHTML = `
-    <div class="card" style="border-top: 6px solid ${{w.color_info.hex}}">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px">
-        <div>
-          <div style="font-size:12.5px;font-weight:700;color:${{w.color_info.hex}};text-transform:uppercase">
-            ${{w.color_info.color}} Highlight Zone &middot; ${{w.color_info.wall_height_label}} &middot; ${{w.lumber_size}} Wall
-          </div>
-          <h2 style="margin:4px 0 4px;font-size:22px">${{w.wall_id}} — ${{w.name}}</h2>
-          <div style="color:var(--muted);font-size:13.5px">${{w.crew_note}}</div>
-        </div>
+  document.getElementById('activeWallCard').innerHTML = `
+    <div class="card" style="border-top:5px solid ${{w.color_info.hex}}">
+      <div style="font-size:12px;font-weight:700;color:${{w.color_info.hex}}">${{w.color_info.color}} Zone &middot; ${{w.color_info.wall_height_label}} &middot; ${{w.lumber_size}} &middot; ${{w.labor_tier}} (${{w.baseline_man_hours}} hrs)</div>
+      <h2 style="margin:3px 0;font-size:20px">${{w.wall_id}} — ${{w.name}}</h2>
+      ${{cabBtns}}
+      ${{w.goofy_alert ? `<div class="alert">&#9888; ${{w.goofy_alert}}</div>` : ''}}
+      <div class="stats">
+        <div class="stat"><div class="l">Left-End Stud Pull</div><div class="v go">${{w.x_and_go_callout}}</div></div>
+        <div class="stat"><div class="l">Plate Length</div><div class="v">${{w.length_label}}</div></div>
+        <div class="stat"><div class="l">Pre-Cut Studs</div><div class="v">${{w.precut_stud_count}} pcs @ ${{w.color_info.precut_stud_label}}</div></div>
       </div>
-
-      ${{goofyHtml}}
-
-      <div class="callout-grid">
-        <div class="stat">
-          <div class="lbl">1. Hook Left End &amp; Pull Studs</div>
-          <div class="val go">${{w.x_and_go_callout}}</div>
-          <div style="font-size:12px;color:var(--muted)">Then 16" O.C. straight down plate</div>
-        </div>
-        <div class="stat">
-          <div class="lbl">2. Full Plate Length</div>
-          <div class="val">${{w.length_label}}</div>
-          <div style="font-size:12px;color:var(--muted)">${{w.lumber_size}} Bottom + Double Top Plate</div>
-        </div>
-        <div class="stat">
-          <div class="lbl">3. Factory Pre-Cut Studs</div>
-          <div class="val">${{w.precut_stud_count}} pcs @ ${{w.color_info.precut_stud_label}}</div>
-          <div style="font-size:12px;color:var(--muted)">${{w.color_info.wall_height_label}}</div>
-        </div>
-      </div>
-
-      <h3 style="margin:16px 0 6px;font-size:15px">A. Door &amp; Window Openings (Pulled from LEFT End of Plate — Verified Order Sizes)</h3>
-      <table>
-        <tr>
-          <th>Doyle Label (Replaces Plan Code)</th>
-          <th>Verified R.O. Size</th>
-          <th>Left-End Tape Pulls (King / Shoulders / R.O.)</th>
-          <th>Pre-Staged Header &amp; Supporting Shoulders</th>
-        </tr>
-        ${{openingsRows}}
-      </table>
-
-      <h3 style="margin:18px 0 6px;font-size:15px">B. Intersecting Partition Channels Built Into Wall on Deck (Pulled from LEFT End of Plate)</h3>
-      <table>
-        <tr><th>Intersecting Wall Tag</th><th>Left-End Tape Pulls (Channel Studs &amp; Partition Pocket)</th><th>On-Deck Assembly &amp; Double Top-Plate Lap Cutout</th></tr>
-        ${{ixRows}}
-      </table>
-
-      <h3 style="margin:18px 0 6px;font-size:15px">C. 16" O.C. Stud Layout Tape Marks (Pulled from LEFT End: ${{w.x_and_go_callout}})</h3>
-      <div class="tape-strip">${{ticks}}</div>
+      <h3 style="margin:12px 0 4px;font-size:13.5px">Openings (From Left End)</h3>
+      <table><tr><th>Label</th><th>Verified R.O.</th><th>Left-End Tape Pulls</th><th>Header &amp; Pre-Made Shoulders</th></tr>${{opRows}}</table>
+      <h3 style="margin:12px 0 4px;font-size:13.5px">Partition Channels Built On Deck (From Left End)</h3>
+      <table><tr><th>Wall Tag</th><th>Left-End Tape Pulls (Backers &amp; Pocket)</th><th>2nd Top-Plate Lap Cutout</th></tr>${{ixRows}}</table>
+      <h3 style="margin:12px 0 4px;font-size:13.5px">Blocking &amp; Mechanical Locations</h3>
+      <table><tr><th>Blocking</th><th>Stock</th><th>Height AFF</th><th>Location</th></tr>${{blkRows}}</table>
+      <h3 style="margin:12px 0 4px;font-size:13.5px">16" O.C. Stud Marks (${{w.x_and_go_callout}})</h3>
+      <div class="tape">${{w.oc_marks_short.map((m,i)=>`<span class="tk ${{i===0?'st':''}}">${{i===0?m+' & GO':m+' X'}}</span>`).join('')}}</div>
     </div>
   `;
 }}
 
 function renderBatches() {{
-  const hRows = DATA.batches.headers.map(h => `
-    <tr>
-      <td><strong style="font-size:15px;color:#4ade80">${{h.count}}x</strong></td>
-      <td><strong>${{h.stock}}</strong></td>
-      <td><strong style="font-size:15px">${{h.length_label}}</strong></td>
-      <td>${{h.labels.join(', ')}}</td>
-    </tr>
-  `).join('');
-
-  const sRows = DATA.batches.shoulders.map(s => `
-    <tr>
-      <td><strong style="font-size:15px;color:#38bdf8">${{s.total_assemblies}} assemblies</strong> (${{s.total_pieces}} pcs)</td>
-      <td><strong>${{s.lumber}} (${{s.plies_per_side}}-ply Pre-Made Supporting Shoulder)</strong></td>
-      <td><strong style="font-size:15px">${{s.length_label}}</strong></td>
-      <td>${{s.labels.join(', ')}}</td>
-    </tr>
-  `).join('');
-
-  const slRows = DATA.batches.sills.map(s => `
-    <tr>
-      <td><strong>${{s.count}}x</strong></td>
-      <td>${{s.lumber}} Rough Sill</td>
-      <td><strong>${{s.length_label}}</strong></td>
-      <td>${{s.labels.join(', ')}}</td>
-    </tr>
-  `).join('');
-
   document.getElementById('tab-batches').innerHTML = `
     <div class="card">
-      <h2 style="margin-top:0">Chop-Saw &amp; Pre-Assembly Bench — Grouped Header &amp; Supporting Shoulder Batches</h2>
-      <p style="color:var(--muted);font-size:13.5px">
-        Cut, nail together, and keel-label every header and supporting shoulder in batches before framing the walls. Stage each labeled bundle at its wall with the SkyTrak.
-      </p>
-      <h3>1. Grouped Header Cut List</h3>
-      <table>
-        <tr><th>Batch Qty</th><th>Header Stock</th><th>Exact Cut Length</th><th>Keel Labels to Write on Header</th></tr>
-        ${{hRows}}
+      <h2 style="margin-top:0">Cut Bench — Grouped Headers &amp; Pre-Made Shoulders</h2>
+      <h3>Headers</h3>
+      <table><tr><th>Qty</th><th>Stock</th><th>Cut Length</th><th>Labels</th></tr>
+        ${{DATA.batches.headers.map(h=>`<tr><td><strong style="color:#4ade80">${{h.count}}x</strong></td><td><strong>${{h.stock}}</strong></td><td><strong>${{h.length_label}}</strong></td><td>${{h.labels.join(', ')}}</td></tr>`).join('')}}
       </table>
-      <h3 style="margin-top:20px">2. Grouped Pre-Made Supporting Shoulders (Jacks)</h3>
-      <table>
-        <tr><th>Batch Qty</th><th>Shoulder Assembly</th><th>Exact Cut Length</th><th>Openings Served</th></tr>
-        ${{sRows}}
-      </table>
-      <h3 style="margin-top:20px">3. Grouped Window Rough Sills</h3>
-      <table>
-        <tr><th>Batch Qty</th><th>Lumber</th><th>Exact Cut Length</th><th>Window Labels</th></tr>
-        ${{slRows}}
+      <h3 style="margin-top:14px">Pre-Made Supporting Shoulders</h3>
+      <table><tr><th>Qty</th><th>Stock</th><th>Cut Length</th><th>Openings</th></tr>
+        ${{DATA.batches.shoulders.map(s=>`<tr><td><strong style="color:#38bdf8">${{s.total_assemblies}} assy (${{s.total_pieces}} pcs)</strong></td><td><strong>${{s.lumber}} (${{s.plies_per_side}}-ply)</strong></td><td><strong>${{s.length_label}}</strong></td><td>${{s.labels.join(', ')}}</td></tr>`).join('')}}
       </table>
     </div>
   `;
 }}
 
-function renderWindowSchedule() {{
-  const allOps = [];
-  DATA.walls.forEach(w => w.openings.forEach(op => allOps.push({{wall_id: w.wall_id, wall_name: w.name, ...op}})));
-  const rows = allOps.map(op => `
-    <tr>
-      <td><strong style="color:#38bdf8;font-size:15px">${{op.label}}</strong></td>
-      <td><span class="badge b-old">${{op.plan_old_code}}</span></td>
-      <td><strong>${{op.wall_id}}</strong> — ${{op.room_and_type}}</td>
-      <td><strong>${{op.ro_size_label}}</strong></td>
-      <td>${{op.left_ro_start_label}} to ${{op.right_ro_end_label}}</td>
-      <td><span class="badge b-ver">&#10003; VERIFIED VS. ORDER PACKET</span></td>
-    </tr>
-  `).join('');
-
-  document.getElementById('tab-windows').innerHTML = `
-    <div class="card">
-      <h2 style="margin-top:0">Window &amp; Door Order Packet Verification Gate</h2>
-      <p style="color:var(--muted);font-size:13.5px">
-        Every rough opening is cross-checked against the manufacturer window/door order packet in pre-planning and assigned a Doyle label (<strong>Room/Type + # + Width</strong>) so framers never build off a wrong blueprint callout like "TZ172".
-      </p>
-      <table>
-        <tr>
-          <th>Doyle Label</th>
-          <th>Ignored Plan Code</th>
-          <th>Wall &amp; Location</th>
-          <th>Order-Verified R.O.</th>
-          <th>Left-End Plate Location</th>
-          <th>Pre-Plan Gate</th>
-        </tr>
-        ${{rows}}
-      </table>
-    </div>
-  `;
+function fmt16(v) {{
+  const s = v < 0 ? '-' : ''; v = Math.abs(v);
+  const w = Math.floor(v + 1e-9), sx = Math.round((v - w) * 16);
+  if (sx === 0) return s + w + '"'; if (sx === 16) return s + (w + 1) + '"';
+  let n = sx, d = 16; while (n % 2 === 0) {{ n /= 2; d /= 2; }}
+  return s + (w > 0 ? w + '-' : '') + n + '/' + d + '"';
 }}
 
-function renderCustomCalculator() {{
-  document.getElementById('tab-custom').innerHTML = `
+function renderStairs() {{
+  document.getElementById('tab-stairs').innerHTML = `
     <div class="card">
-      <h2 style="margin-top:0">Custom Wall Left-End "X &amp; Go" + Opening Calculator</h2>
-      <p style="color:var(--muted);font-size:13.5px">
-        Add a wall on the fly from your architectural scale notes: enter the plate length, the left-end first stud pull ("X and Go"), and an optional door/window opening to generate an instant crew pull card.
-      </p>
-      <div class="form-grid">
-        <div><label>Wall Tag &amp; Name</label><input id="c_name" value="W-9 — Basement Bedroom #3 Partition"></div>
-        <div><label>Wall Length (Inches)</label><input id="c_len" type="number" step="0.25" value="192"></div>
-        <div><label>Left-End First Stud Pull (Inches)</label><input id="c_pull" type="number" step="0.25" value="8.25"></div>
-        <div><label>Wall Height / Color Zone</label>
-          <select id="c_zone">
-            <option value="92-5/8&quot; Studs (Blue 8' Wall)">Blue — 8'1-1/8" (92-5/8" Pre-Cuts)</option>
-            <option value="104-5/8&quot; Studs (Green 9' Wall)" selected>Green — 9'1-1/8" (104-5/8" Pre-Cuts)</option>
-            <option value="116-5/8&quot; Studs (Orange 10' Wall)">Orange — 10'1-1/8" (116-5/8" Pre-Cuts)</option>
+      <h2 style="margin-top:0">Stair Stringer Calculator — Plan Height vs. Field Measurement</h2>
+      <div class="fgrid">
+        <div><label>Plan Wall Stud Stock</label>
+          <select id="st_stud" onchange="calcStairs()">
+            <option value="92.625">92-5/8" (8' Wall)</option>
+            <option value="104.625" selected>104-5/8" (9' Wall)</option>
+            <option value="116.625">116-5/8" (10' Wall)</option>
+            <option value="126.625">126-5/8" (Tall Wall)</option>
           </select>
         </div>
+        <div><label>Plan Floor Assembly (In)</label><input id="st_floor" type="number" step="0.125" value="12.625" oninput="calcStairs()"></div>
+        <div><label>ACTUAL FIELD TOTAL RISE (In)</label><input id="st_field" type="number" step="0.125" value="121.25" oninput="calcStairs()"></div>
+        <div><label>Tread Thickness Drop (In)</label><input id="st_tread" type="number" step="0.125" value="1.5" oninput="calcStairs()"></div>
+        <div><label>Unit Run (In)</label><input id="st_run" type="number" step="0.25" value="10.0" oninput="calcStairs()"></div>
       </div>
-      <div class="form-grid">
-        <div><label>Doyle Opening Label</label><input id="c_oplabel" value="BR3W2-48"></div>
-        <div><label>Left-End to R.O. Start (Inches)</label><input id="c_rostart" type="number" step="0.25" value="60"></div>
-        <div><label>Verified R.O. Width (Inches)</label><input id="c_rowidth" type="number" step="0.25" value="48"></div>
-        <div><label>Shoulders Per Side (1 or 2)</label><input id="c_sh" type="number" min="1" max="3" value="2"></div>
-      </div>
-      <button class="btn" onclick="calcCustomWall()">Generate Left-End Crew Pull Sheet</button>
-      <div id="customOut" style="margin-top:16px"></div>
+      <div id="stairOut"></div>
     </div>
   `;
-  calcCustomWall();
+  calcStairs();
 }}
 
-function fmtInJS(v) {{
-  const whole = Math.floor(v);
-  const rem = Math.round((v - whole) * 4) / 4;
-  const fracMap = {{0.25: '1/4', 0.5: '1/2', 0.75: '3/4'}};
-  if (rem === 0) return whole + '"';
-  return whole + '-' + (fracMap[rem] || rem.toFixed(2)) + '"';
-}}
-
-function calcCustomWall() {{
-  const name = document.getElementById('c_name').value;
-  const len = parseFloat(document.getElementById('c_len').value) || 192;
-  const pull = parseFloat(document.getElementById('c_pull').value) || 8.25;
-  const zone = document.getElementById('c_zone').value;
-  const opLabel = document.getElementById('c_oplabel').value;
-  const roStart = parseFloat(document.getElementById('c_rostart').value) || 60;
-  const roWidth = parseFloat(document.getElementById('c_rowidth').value) || 48;
-  const sh = parseInt(document.getElementById('c_sh').value) || 2;
-
-  const shSpan = 1.5 * sh;
-  const hdrLen = roWidth + 2 * shSpan;
-  const leftSh = roStart - shSpan;
-  const leftKing = leftSh - 1.5;
-  const rightRo = roStart + roWidth;
-  const rightSh = rightRo + shSpan;
-  const rightKing = rightSh + 1.5;
-
-  const marks = [];
-  for (let p = pull; p < len - 1.5; p += 16) marks.push(fmtInJS(p));
-
-  document.getElementById('customOut').innerHTML = `
-    <div class="card" style="background:#020617">
-      <h3 style="margin-top:0">${{name}} — ${{zone}}</h3>
-      <p><strong>Left-End Stud Pull:</strong> <span style="color:#4ade80;font-weight:800">${{fmtInJS(pull)}} &amp; GO</span> &nbsp;|&nbsp; <strong>Plate Length:</strong> ${{fmtInJS(len)}}</p>
-      <p><strong>Opening ${{opLabel}}:</strong> King(L) <code>${{fmtInJS(leftKing)}}</code> &middot; Shoulders(L) <code>${{fmtInJS(leftSh)}}</code> &middot; <strong style="color:#38bdf8">R.O. <code>${{fmtInJS(roStart)}}</code> to <code>${{fmtInJS(rightRo)}}</code></strong> &middot; Shoulders(R) <code>${{fmtInJS(rightSh)}}</code> &middot; King(R) <code>${{fmtInJS(rightKing)}}</code></p>
-      <p><strong>Pre-Staged Header Length:</strong> <code>${{fmtInJS(hdrLen)}}</code> &nbsp;|&nbsp; <strong>Pre-Made Supporting Shoulders:</strong> <code>${{sh}}x each side @ 81"</code></p>
-      <div class="tape-strip">${{marks.map((m,i) => `<span class="tick ${{i===0?'first':''}}">${{i===0 ? 'START '+m+' & GO' : m+' X'}}</span>`).join('')}}</div>
-    </div>
+function calcStairs() {{
+  const stud = parseFloat(document.getElementById('st_stud').value) || 104.625;
+  const flr = parseFloat(document.getElementById('st_floor').value) || 12.625;
+  const field = parseFloat(document.getElementById('st_field').value) || 121.25;
+  const tread = parseFloat(document.getElementById('st_tread').value) || 1.5;
+  const run = parseFloat(document.getElementById('st_run').value) || 10.0;
+  const planTot = stud + 4.5 + flr, pR = Math.max(1, Math.round(planTot / 7.5)), pU = planTot / pR;
+  const fR = Math.max(1, Math.round(field / 7.5)), fU = field / fR, totRun = (fR - 1) * run;
+  document.getElementById('stairOut').innerHTML = `
+    <table>
+      <tr><th>Measurement</th><th>Plan Theoretical</th><th>ACTUAL FIELD CUT</th></tr>
+      <tr><td>Total Rise</td><td>${{fmt16(planTot)}}</td><td><strong style="color:#4ade80">${{fmt16(field)}}</strong> (Delta: ${{fmt16(field - planTot)}})</td></tr>
+      <tr><td>Risers / Treads</td><td>${{pR}} Risers / ${{pR-1}} Treads</td><td><strong>${{fR}} Risers / ${{fR-1}} Treads</strong></td></tr>
+      <tr><td>Unit Rise</td><td>${{fmt16(pU)}}</td><td><strong style="color:#38bdf8;font-size:16px">${{fmt16(fU)}} (${{fU.toFixed(3)}}")</strong></td></tr>
+      <tr><td>Unit Run / Total Run</td><td>${{fmt16(run)}}</td><td><strong>${{fmt16(run)}}</strong> &middot; Total Run: <strong>${{Math.floor(totRun/12)}}' ${{fmt16(totRun%12)}}</strong></td></tr>
+      <tr><td>Bottom Riser Cut (-${{fmt16(tread)}} Tread)</td><td>—</td><td><strong style="color:#fbbf24">${{fmt16(fU - tread)}}</strong></td></tr>
+    </table>
   `;
 }}
 
-function renderChecklist() {{
-  const items = [
-    "Window & Door R.O. Verification: Every rough opening measured with tape against the Order-Packet Verified schedule (PD1-82, LLPD1-82, GRW1-60, MS1-60, BR2W1-48, BR3W1-48, GD1-194).",
-    "Pre-Made Supporting Shoulders & Header Bearing: Double supporting shoulders installed tightly under all spans >= 48\"; zero gaps between bottom plate, shoulder, and header.",
-    "Double Top-Plate Laps & Partition Tie-Ins: Minimum 48\" lap across all top-plate joints; intersecting interior partition walls (W-6 through W-12) lapped and nailed into exterior top plates.",
-    "Walkout Lower-Level Exposure Wall (W-1): Treated bottom plate bolted every 48\" max and within 12\" of plate breaks; step-frost wall anchor bolts washered and tightened.",
-    "Garage Portal Wall Hold-Downs (W-6 / GD1-194): Simpson portal hold-down brackets fastened to embedded foundation anchor bolts at both king posts before sheathing.",
-    "Tray Ceiling & Fireplace Blocking (W-2, W-3, W-8): 9'0\" perimeter tray ceiling soffit ledgers snapped and nailed; 2x12 TV/mantle backing installed above FP1-50; fireblocking installed at all soffit/chase drops.",
-    "Plumb, Line & String-Plane Check: All tall 9' and 10' walls plumbed, string-lined top plate to top plate, and braced prior to setting roof trusses."
-  ];
-  document.getElementById('tab-qc').innerHTML = `
+function renderYard() {{
+  document.getElementById('tab-yard').innerHTML = `
     <div class="card">
-      <h2 style="margin-top:0">Standardized Municipal Framing Pre-Inspection Checklist</h2>
-      <p style="color:var(--muted);font-size:13.5px">
-        Co-developed with the municipal building inspector at Doyle's Contracting to guarantee first-time framing inspection pass rates across 100+ builds.
-      </p>
-      ${{items.map((txt, i) => `
-        <label style="display:flex;align-items:flex-start;gap:10px;padding:10px;border-bottom:1px solid var(--border);color:var(--text);font-size:14px;cursor:pointer">
-          <input type="checkbox" style="width:18px;height:18px;margin-top:2px">
-          <span><strong>#${{i+1}}.</strong> ${{txt}}</span>
-        </label>
-      `).join('')}}
+      <h2 style="margin-top:0">Jobsite Staging Map</h2>
+      <table>
+        <tr><th>Staging Zone</th><th>Placement &amp; Bunks</th></tr>
+        <tr><td><strong style="color:#4ade80">Close Perimeter (Hand-Carried)</strong></td><td>I-Joists dropped right against foundation oriented parallel to span; Treated 2x6 sills &amp; rim at corner; Cut bench beside 2x10/2x12/2x6 header stock.</td></tr>
+        <tr><td><strong style="color:#38bdf8">On-Deck Bunks</strong></td><td>104-5/8" stud bunk at South/East deck (W-1, W-3, W-4); 116-5/8" stud bunk at North/Center deck (W-2, W-5, W-6); 92-5/8" stud bunk at interior hall (W-7); 7/16" sheathing &amp; Tyvek at exterior plates.</td></tr>
+        <tr><td><strong style="color:#fbbf24">Front Porch Pad (8'x4')</strong></td><td>8'x4' porch beams, roof deck, gable, and rake built directly on top of the front porch foundation walls before lifting.</td></tr>
+        <tr><td><strong style="color:#f472b6">Outer SkyTrak Yard (Far Off Perimeter)</strong></td><td>Floor trusses in 4–6 packs reverse-staged (LIFO North->South, East->West); Roof trusses sorted in field (pack only 10+ identical commons); Ground-built completed gable ends; Steel I-beam &amp; teleposts (by others, field-set/welded).</td></tr>
+      </table>
     </div>
   `;
+}}
+
+function renderBidding() {{
+  document.getElementById('tab-bidding').innerHTML = `
+    <div class="card">
+      <h2 style="margin-top:0">Daily Goal &amp; Crew Baseline Hours (1-Man / 2-Man / Full Crew)</h2>
+      <table>
+        <tr><th>Done</th><th>Wall</th><th>Crew Assignment</th><th>Baseline Hours</th></tr>
+        ${{DATA.walls.map(w=>`<tr><td><input type="checkbox" checked onchange="recalcGoal()" class="wchk" data-h="${{w.baseline_man_hours}}" data-id="${{w.wall_id}}"></td><td><strong>${{w.wall_id}}</strong> — ${{w.name}}</td><td>${{w.labor_tier}}</td><td><strong>${{w.baseline_man_hours}} hrs</strong></td></tr>`).join('')}}
+      </table>
+      <div id="goalOut" style="margin-top:10px;font-weight:700;color:#4ade80"></div>
+    </div>
+  `;
+  recalcGoal();
+}}
+
+function recalcGoal() {{
+  let done = 0, rem = 0, q = [];
+  document.querySelectorAll('.wchk').forEach(c => {{
+    const h = parseFloat(c.getAttribute('data-h')) || 0;
+    if (c.checked) done += h; else {{ rem += h; q.push(c.getAttribute('data-id')); }}
+  }});
+  document.getElementById('goalOut').textContent = `Completed: ${{done.toFixed(1)}} hrs | Remaining: ${{rem.toFixed(1)}} hrs ${{q.length ? '(Next Goal: ' + q.join(', ') + ')' : '(Walls Complete)'}}`;
 }}
 
 init();
